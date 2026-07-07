@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "AI 紫微斗数",
+    "navigationBarBackgroundColor": "#0a0a1a",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0a0a1a"
+  },
+  "sitemapLocation": "sitemap.json"
+}
