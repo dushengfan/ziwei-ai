@@ -289,13 +289,17 @@ body {
 
   <!-- 表单卡片 -->
   <div class="card" style="padding:24px 20px;">
-    <!-- 日期 -->
+    <!-- 日期：年月日三下拉 -->
     <div class="form-group">
       <label class="form-label">📅 公历出生日期</label>
-      <input type="date" id="birthDate" class="form-input" value="1990-06-15" style="color-scheme:dark;">
+      <div style="display:flex;gap:8px;">
+        <select id="birthYear" class="form-select" style="flex:2;" onchange="updateDays()"></select>
+        <select id="birthMonth" class="form-select" style="flex:1;" onchange="updateDays()"></select>
+        <select id="birthDay" class="form-select" style="flex:1;"></select>
+      </div>
     </div>
 
-    <!-- 时辰：改为时间输入框 -->
+    <!-- 时间 -->
     <div class="form-group">
       <label class="form-label">⏰ 出生时间</label>
       <input type="time" id="birthTime" class="form-input" value="14:30" style="color-scheme:dark;">
@@ -530,7 +534,10 @@ function goHome() {
 }
 
 async function submitForm() {
-  const solar_date = document.getElementById('birthDate').value;
+  const y = document.getElementById('birthYear').value;
+  const m = document.getElementById('birthMonth').value.padStart(2,'0');
+  const d = document.getElementById('birthDay').value.padStart(2,'0');
+  const solar_date = `${y}-${m}-${d}`;
   const time = document.getElementById('birthTime').value;
   const city = document.getElementById('city').value.trim() || null;
 
@@ -684,11 +691,51 @@ async function startReading(solar_date, time, city, gender) {
 }
 
 // ============================================================
-// 初始化：设置今天日期 + 加载配额
+// 日期下拉初始化
 // ============================================================
-const today = new Date();
-document.getElementById('birthDate').value =
-  `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+function updateDays() {
+  const y = parseInt(document.getElementById('birthYear').value);
+  const m = parseInt(document.getElementById('birthMonth').value);
+  const daySel = document.getElementById('birthDay');
+  const prev = parseInt(daySel.value) || 15;
+  const days = new Date(y, m, 0).getDate(); // m 是 1-12，月+1 的 0 号 = 当月最后一天
+  daySel.innerHTML = '';
+  for (let d = 1; d <= days; d++) {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d + '日';
+    if (d === Math.min(prev, days)) opt.selected = true;
+    daySel.appendChild(opt);
+  }
+}
+
+(function initDateSelects() {
+  const now = new Date();
+  const ySel = document.getElementById('birthYear');
+  const mSel = document.getElementById('birthMonth');
+
+  for (let y = now.getFullYear(); y >= 1940; y--) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y + '年';
+    if (y === 1990) opt.selected = true;
+    ySel.appendChild(opt);
+  }
+
+  for (let m = 1; m <= 12; m++) {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m + '月';
+    if (m === 6) opt.selected = true;
+    mSel.appendChild(opt);
+  }
+
+  updateDays();
+})();
+
+// ============================================================
+// 初始化：设置今天日期 + 加载配额（不再需要设置 birthDate）
+// ============================================================
 
 async function refreshQuota() {
   try {
