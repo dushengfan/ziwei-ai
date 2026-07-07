@@ -1,0 +1,17 @@
+node_modules/
+.env
+*.log
+debug_*
+sample_*
+push_to_github.js
+workflow.js
+*.docx
+*.txt
+*.py
+*.html
+!public/index.html
+.reasonix/
+tmp_skills3/
+projects/
+esg-presentation.html
+kazakh-ppt.html
