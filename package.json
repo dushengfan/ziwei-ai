@@ -1,0 +1,20 @@
+{
+  "name": "ziwei-ai",
+  "version": "1.0.0",
+  "description": "AI 紫微斗数解盘 - 探索你的生命蓝图",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "isomorphic-git": "^1.38.6",
+    "iztro": "^2.5.8",
+    "lunar-javascript": "^1.7.7",
+    "marked": "^18.0.5"
+  }
+}
