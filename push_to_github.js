@@ -55,7 +55,13 @@ const FILES = [
   'wechat-app/project.config.json',
   'wechat-app/pages/index/index.json',
   'wechat-app/pages/index/index.wxml',
+  'wechat-app/pages/index/index.wxss',
   'wechat-app/pages/index/index.js',
+  'wechat-app/pages/pay/pay.json',
+  'wechat-app/pages/pay/pay.wxml',
+  'wechat-app/pages/pay/pay.wxss',
+  'wechat-app/pages/pay/pay.js',
+  'wechat-app/utils/api.js',
 ];
 
 async function api(method, endpoint, body = null) {
