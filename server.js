@@ -344,9 +344,7 @@ function assemblePrompt(data, knowledge, module) {
   }
   // 合盘知识（感情婚姻模块参考）
   if (knowledge.hepan) {
-    kb += '### 合盘婚恋参考
-
-';
+    kb += '### 合盘婚恋参考\n\n';
     const hp = knowledge.hepan;
     // 星曜匹配：找到命宫主星和夫妻宫主星的配对
     const mingStar = data.mingPalace?.majorStars?.[0]?.name;
@@ -582,12 +580,277 @@ app.post('/api/reading', async (req, res) => {
 });
 
 // ============================================================
+// 高级 API 公共辅助
+// ============================================================
+function calcChart(solar_date, time, city, gender) {
+  const { adjustedDate, hourIdx: shichenIdx, shichenName, description } = timeToShichen(solar_date, time, city || null);
+  const d = new Date(adjustedDate);
+  const dateStr = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  const a = astro.bySolar(dateStr, shichenIdx, gender, true, 'zh-CN');
+  const data = cleanData(a, gender, shichenIdx);
+  const knowledge = retrieveKnowledge(data);
+  return { astrolabe: a, data, knowledge, adjustedDate, shichenIdx, shichenName, description };
+}
+
+async function sseStream(res, fn) {
+  res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
+  try { await fn(); } catch (e) { res.write(`data: ${JSON.stringify({ type: 'error', message: e.message })}\n\n`); }
+  res.end();
+}
+
+async function deepseekStream(res, systemPrompt, userMessage) {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) { res.write(`data: ${JSON.stringify({ type: 'error', message: '服务器未配置 DEEPSEEK_API_KEY' })}\n\n`); return; }
+  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }], stream: true, temperature: 0.7, max_tokens: 4096 })
+  });
+  if (!response.ok) { res.write(`data: ${JSON.stringify({ type: 'error', message: `DeepSeek API ${response.status}` })}\n\n`); return; }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n'); buf = lines.pop() || '';
+    for (const line of lines) {
+      const t = line.trim(); if (!t || !t.startsWith('data: ')) continue;
+      const d2 = t.slice(6); if (d2 === '[DONE]') { res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`); continue; }
+      try { const j = JSON.parse(d2); const c = j.choices?.[0]?.delta?.content; if (c) res.write(`data: ${JSON.stringify({ type: 'text', content: c })}\n\n`); } catch {}
+    }
+  }
+}
+
+// ============================================================
+// 高级 API 1: 十年大限深度推演
+// ============================================================
+app.post('/api/advanced/daxian', async (req, res) => {
+  await sseStream(res, async () => {
+    const { solar_date, time, city, gender } = req.body;
+    if (!solar_date || !time || !gender) { res.write(`data: ${JSON.stringify({ type: 'error', message: '缺少必填参数' })}\n\n`); return; }
+
+    const { data, knowledge } = calcChart(solar_date, time, city, gender);
+    if (!data.horoscopeData?.decadal) { res.write(`data: ${JSON.stringify({ type: 'error', message: '无法获取大限数据' })}\n\n`); return; }
+
+    // 构建大限详情
+    const birthYear = parseInt(data.basic.solarDate?.split('-')[0]);
+    const age = new Date().getFullYear() - birthYear;
+    const currentPalace = data.allPalaces.find(p => {
+      const range = p.decadalRange?.match(/\d+/g);
+      if (!range) return false;
+      return age >= parseInt(range[0]) && age < parseInt(range[0]) + 10;
+    });
+    const allPalaces = data.allPalaces.map(p => ({
+      name: p.name, majorStars: p.majorStars.map(s => `${s.name}(${s.brightness})${s.mutagen ? '化' + s.mutagen : ''}`).join('、') || '空宫',
+      decadalRange: p.decadalRange
+    }));
+
+    // 知识库摘要
+    let kb = '';
+    const dk = knowledge.daxian;
+    if (currentPalace && dk?.piles?.[currentPalace.name]) kb += `### 当前大限叠宫\n${dk.piles[currentPalace.name]}\n\n`;
+    if (dk?.sihua_into_palace) {
+      const dec = data.horoscopeData.decadal;
+      if (dec.mutagen) {
+        kb += `### 大限四化飞星\n大限四化：化禄(${dec.mutagen[0]}) / 化权(${dec.mutagen[1]}) / 化科(${dec.mutagen[2]}) / 化忌(${dec.mutagen[3]})\n\n`;
+        ['化禄','化权','化科','化忌'].forEach((h, i) => {
+          const star = dec.mutagen[i];
+          const starPalaces = data.allPalaces.filter(p => p.majorStars.some(s => s.name === star));
+          starPalaces.forEach(sp => {
+            const meaning = dk.sihua_into_palace[h]?.[sp.name];
+            if (meaning) kb += `**${star}${h}入${sp.name}**: ${meaning}\n\n`;
+          });
+        });
+      }
+    }
+    if (dk?.key_principles) { kb += '### 核心断法\n' + dk.key_principles.map(p => `- ${p}`).join('\n') + '\n\n'; }
+
+    const promo = `\n\n${'—'.repeat(20)}\n💎 以上为免费版大限概览。解锁完整「十年大限深度推演」报告，含三方四正叠加分析、四化飞星逐宫精解、每一年流年应期。\n👉 请关注公众号/小程序获取完整版。`;
+
+    const sp = (knowledge.sihuaAdvanced?.ancient_verses?.[0] || {}).text || '';
+    const prompt = [
+      '你是一位紫微斗数大限推演专家。请对以下命盘进行十年大限深度解读。',
+      '', '## 命盘数据', '```json', JSON.stringify({ basic: data.basic, mingPalace: data.mingPalace, allPalaces, horoscopeData: data.horoscopeData }), '```',
+      '', kb,
+      '', '请按以下结构输出：',
+      '1. **当前大限概述**：大限宫位+叠宫关系+核心主题',
+      '2. **三方四正分析**：财帛宫/官禄宫/迁移宫对本大限的影响',
+      '3. **四化飞星详解**：大限禄权科忌的含义和注意事项',
+      '4. **关键年份提示**：此十年内哪些流年需要重点关注',
+      '5. **行动建议**：此十年的核心策略',
+      '', '参考古籍：' + sp,
+      '', promo
+    ].join('\n');
+
+    const sysPrompt = '你是紫微斗数大限分析专家。语气温暖专业，忌用恐吓性词汇，结尾必须附：「本内容由 AI 基于传统国学文化生成，仅供娱乐与自我探索参考，命运掌握在您自己手中。」';
+    res.write(`data: ${JSON.stringify({ type: 'meta', age, daxianPalace: currentPalace?.name || '未知', fourElements: data.basic.fiveElements })}\n\n`);
+    await deepseekStream(res, sysPrompt, prompt);
+  });
+});
+
+// ============================================================
+// 高级 API 2: 流月精批
+// ============================================================
+app.post('/api/advanced/liuyue', async (req, res) => {
+  await sseStream(res, async () => {
+    const { solar_date, time, city, gender, target_year } = req.body;
+    if (!solar_date || !time || !gender) { res.write(`data: ${JSON.stringify({ type: 'error', message: '缺少必填参数' })}\n\n`); return; }
+
+    const { data, knowledge, astrolabe, shichenIdx } = calcChart(solar_date, time, city, gender);
+    const targetYear = parseInt(target_year) || new Date().getFullYear() + 1;
+
+    // 排流年斗君
+    const yearBranchIdx = targetYear % 12; // 简化：流年地支索引
+    const SHENGXIAO = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    const yearBranch = SHENGXIAO[yearBranchIdx];
+
+    // 斗君推算：流年支上起子时，逆数至生时
+    const BRANCH_ORDER = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    const yearBranchPos = BRANCH_ORDER.indexOf(yearBranch);
+    let doujunPos = yearBranchPos;
+    for (let i = 0; i < shichenIdx; i++) {
+      doujunPos = (doujunPos - 1 + 12) % 12; // 逆时针
+    }
+    const doujunBranch = BRANCH_ORDER[doujunPos];
+
+    // 构造12个月概要
+    const PALACE_LABELS = ['命宫','兄弟宫','夫妻宫','子女宫','财帛宫','疾厄宫','迁移宫','交友宫','官禄宫','田宅宫','福德宫','父母宫'];
+    let monthlySummary = '';
+    for (let m = 0; m < 12; m++) {
+      const monthPalaceIdx = (doujunPos + m) % 12;
+      const palaceName = PALACE_LABELS[monthPalaceIdx] || '未知';
+      monthlySummary += `${m + 1}月 → 流月命宫：${palaceName}\n`;
+    }
+
+    // 知识库
+    let kb = '';
+    if (knowledge.liuyue) {
+      const ly = knowledge.liuyue;
+      if (ly.monthly_sihua_rules?.core_rule) kb += `### 流月核心原则\n${ly.monthly_sihua_rules.core_rule}\n\n`;
+      if (ly.monthly_palace_piles) {
+        kb += '### 流月叠宫参考\n';
+        for (const [k, v] of Object.entries(ly.monthly_palace_piles).slice(0, 6)) kb += `- ${k}: ${v}\n`;
+        kb += '\n';
+      }
+    }
+
+    const promo = `\n\n${'—'.repeat(20)}\n💎 以上为免费版流月概览。解锁完整「${targetYear}年流月精批」报告，含每月禁忌吉日、四化飞星逐月详批、重大决策建议日期。\n👉 请关注公众号/小程序获取完整版。`;
+
+    const prompt = [
+      `请对以下命盘进行${targetYear}年（${yearBranch}年）流月运势精批。`,
+      `命主当前年龄约${new Date().getFullYear() - parseInt(data.basic.solarDate?.split('-')[0])}岁，处于${data.basic.fiveElements}。`,
+      '', '## 命盘数据', '```json', JSON.stringify({ basic: data.basic, mingPalace: data.mingPalace, birthSihua: data.birthSihua }), '```',
+      '', `## 斗君推算\n流年${yearBranch}年，斗君在${doujunBranch}宫，正月命宫起${doujunBranch}，顺排十二流月：\n${monthlySummary}`,
+      '', kb,
+      '', '请按以下结构输出：',
+      `1. **${targetYear}年运势总览**：用3句话概括全年运势基调`,
+      '2. **重点月份提醒**：挑出最重要的3-4个月份，说明原因',
+      '3. **每月一句话**：1月到12月各一句核心提示',
+      '4. **年度行动建议**：今年的核心策略',
+      '', promo
+    ].join('\n');
+
+    const sysPrompt = '你是紫微斗数流月分析专家。简洁精准，忌废话。结尾附免责声明。';
+    res.write(`data: ${JSON.stringify({ type: 'meta', targetYear, yearBranch, doujunBranch, monthSummary: monthlySummary })}\n\n`);
+    await deepseekStream(res, sysPrompt, prompt);
+  });
+});
+
+// ============================================================
+// 高级 API 3: 双人合盘解读
+// ============================================================
+app.post('/api/advanced/hepan', async (req, res) => {
+  await sseStream(res, async () => {
+    const { user1, user2, relation } = req.body;
+    if (!user1 || !user2) { res.write(`data: ${JSON.stringify({ type: 'error', message: '缺少 user1 或 user2 参数' })}\n\n`); return; }
+
+    // 计算两人命盘
+    const c1 = calcChart(user1.solar_date, user1.time, user1.city, user1.gender);
+    const c2 = calcChart(user2.solar_date, user2.time, user2.city, user2.gender);
+    const knowledge = c1.knowledge; // 知识库（含 hepan 匹配数据）
+
+    const ming1 = c1.data.mingPalace?.majorStars?.map(s => s.name).join('、') || '空宫';
+    const ming2 = c2.data.mingPalace?.majorStars?.map(s => s.name).join('、') || '空宫';
+    const fuqi1 = c1.data.allPalaces?.find(p => p.name === '夫妻宫')?.majorStars?.map(s => s.name).join('、') || '空宫';
+    const fuqi2 = c2.data.allPalaces?.find(p => p.name === '夫妻宫')?.majorStars?.map(s => s.name).join('、') || '空宫';
+
+    // 星曜匹配
+    let matchInfo = '';
+    if (knowledge.hepan?.star_matching) {
+      const sm = knowledge.hepan.star_matching;
+      const pairs = [];
+      for (const s1 of (c1.data.mingPalace?.majorStars || [])) {
+        for (const s2 of (c2.data.mingPalace?.majorStars || [])) {
+          const key = `${s1.name}_${s2.name}`; const m = sm[key] || sm[`${s2.name}_${s1.name}`];
+          if (m) pairs.push(`**${s1.name} × ${s2.name}**: ⭐${m.score}/5 — ${m.mode}`);
+        }
+      }
+      if (pairs.length) matchInfo = '### 星曜匹配\n' + pairs.join('\n\n') + '\n\n';
+    }
+
+    // 互为夫妻宫检测
+    const singleStars1 = (c1.data.mingPalace?.majorStars || []).map(s => s.name);
+    const singleStars2 = (c2.data.mingPalace?.majorStars || []).map(s => s.name);
+    const fuqiStars1 = (c1.data.allPalaces?.find(p => p.name === '夫妻宫')?.majorStars || []).map(s => s.name);
+    const fuqiStars2 = (c2.data.allPalaces?.find(p => p.name === '夫妻宫')?.majorStars || []).map(s => s.name);
+    const mutual1 = singleStars1.some(s => fuqiStars2.includes(s));
+    const mutual2 = singleStars2.some(s => fuqiStars1.includes(s));
+    if (mutual1 && mutual2) matchInfo += '💫 **互为夫妻宫**：双方互为核心理想型，属于天作之合的配置。\n\n';
+    else if (mutual1) matchInfo += '💡 甲方命宫匹配乙方夫妻宫，但反向不成立——甲是乙的理想型，但乙并非甲的菜。\n\n';
+
+    // 四化互飞
+    const sihua1 = c1.data.birthSihua || [];
+    const sihua2 = c2.data.birthSihua || [];
+    if (sihua1.length && sihua2.length) {
+      matchInfo += '### 本命四化对比\n';
+      matchInfo += `甲方四化: ${sihua1.map(s => `${s.star}化${s.type}(${s.palace})`).join(' | ')}\n`;
+      matchInfo += `乙方四化: ${sihua2.map(s => `${s.star}化${s.type}(${s.palace})`).join(' | ')}\n\n`;
+    }
+
+    const relationLabel = { lover: '情侣', partner: '合伙人', parent_child: '亲子' }[relation] || '综合关系';
+
+    const promo = `\n\n${'—'.repeat(20)}\n💎 以上为免费版合盘概览。解锁完整「双人合盘深度解读」报告，含四化互飞详批、大限同步分析、桃花星/煞星权重评估、${relationLabel}专属相处策略。\n👉 请关注公众号/小程序获取完整版。`;
+
+    const prompt = [
+      `请对以下两人的命盘进行${relationLabel}合盘解读。`,
+      '', '## 甲方命盘（核心数据）', '```json',
+      JSON.stringify({
+        basic: c1.data.basic, mingPalace: c1.data.mingPalace,
+        fuqiPalace: c1.data.allPalaces?.find(p => p.name === '夫妻宫'),
+        birthSihua: c1.data.birthSihua
+      }), '```',
+      '', '## 乙方命盘（核心数据）', '```json',
+      JSON.stringify({
+        basic: c2.data.basic, mingPalace: c2.data.mingPalace,
+        fuqiPalace: c2.data.allPalaces?.find(p => p.name === '夫妻宫'),
+        birthSihua: c2.data.birthSihua
+      }), '```',
+      '', matchInfo,
+      '', '请按以下结构输出：',
+      `1. **契合度总评**：给一个1-5⭐的整体评分+一句话总结`,
+      '2. **性格匹配分析**：命宫主星互动如何',
+      '3. **感情/合作模式**：夫妻宫（或交友宫）的匹配度',
+      '4. **潜在摩擦点**：需要注意哪些领域',
+      '5. **相处建议**：3条具体的相处/合作策略',
+      '', `${'—'.repeat(20)}`,
+      '本内容由 AI 基于传统国学文化生成，仅供娱乐与自我探索参考，命运掌握在您自己手中。',
+      '', promo
+    ].join('\n');
+
+    const sysPrompt = '你是紫微斗数合盘分析专家。语气温暖理性，忌宿命论和恐吓性词汇（如"必离必克"），用"需要注意""建议沟通"等建设性表达。';
+    res.write(`data: ${JSON.stringify({ type: 'meta', relation: relationLabel, ming1, ming2, fuqi1, fuqi2, mutual: mutual1 && mutual2 })}\n\n`);
+    await deepseekStream(res, sysPrompt, prompt);
+  });
+});
+
+// ============================================================
 // 启动
 // ============================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n🪐 紫微斗数 AI 解盘 服务已启动`);
   console.log(`   前端: http://localhost:${PORT}`);
-  console.log(`   API:  http://localhost:${PORT}/api/chart`);
-  console.log(`         http://localhost:${PORT}/api/reading (SSE)\n`);
+  console.log(`   基础: /api/chart  /api/reading(SSE)  /api/quota`);
+  console.log(`   高级: /api/advanced/daxian  /liuyue  /hepan (SSE)\n`);
 });
