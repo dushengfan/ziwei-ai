@@ -1,0 +1,32 @@
+<!-- 购买次数包页面 -->
+<scroll-view scroll-y class="page">
+  <view class="hero">
+    <text class="hero-icon">💎</text>
+    <text class="hero-title">解锁无限探索</text>
+    <text class="hero-subtitle">选择适合你的次数包</text>
+  </view>
+
+  <!-- 套餐列表 -->
+  <view class="pkg-list">
+    <view class="pkg-card {{item.hot ? 'hot' : ''}}" wx:for="{{packages}}" wx:key="type"
+          bindtap="selectPackage" data-idx="{{index}}">
+      <view class="pkg-badge" wx:if="{{item.hot}}">🔥 最受欢迎</view>
+      <view class="pkg-top">
+        <view>
+          <text class="pkg-name">{{item.name}}</text>
+          <text class="pkg-desc">{{item.desc}}</text>
+        </view>
+        <text class="pkg-price">¥{{item.price}}</text>
+      </view>
+      <view class="pkg-action" wx:if="{{selectedIdx === index}}">
+        <view class="btn-gold" bindtap="doPay" data-type="{{item.type}}">✨ 确认购买 ¥{{item.price}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提示 -->
+  <view class="footer-text">
+    <text>当前付费次数：{{paidQuota}} 次</text>
+    <text>本页面为测试环境，支付为模拟流程</text>
+  </view>
+</scroll-view>
