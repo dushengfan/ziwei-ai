@@ -151,7 +151,7 @@ function loadKb() {
   if (_kb) return _kb;
   const dirs = [path.join(__dirname, 'knowledge'), path.join(os.homedir(), 'Desktop', '命理知识库')];
   const load = (f) => { for (const d of dirs) { const p = path.join(d, f); if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf-8')); } return []; };
-  _kb = { stars: load('palace.json'), palaces: load('stars.json'), sihua: load('sihua.json'), patterns: load('patterns.json') || {}, daxian: load('daxian.json') || null, sihuaAdvanced: load('sihua_advanced.json') || null, liuyue: load('liuyue.json') || null };
+  _kb = { stars: load('palace.json'), palaces: load('stars.json'), sihua: load('sihua.json'), patterns: load('patterns.json') || {}, daxian: load('daxian.json') || null, sihuaAdvanced: load('sihua_advanced.json') || null, liuyue: load('liuyue.json') || null, hepan: load('hepan.json') || null };
   return _kb;
 }
 
@@ -218,6 +218,7 @@ function retrieveKnowledge(data) {
     k.daxian = kb.daxian;
     k.sihuaAdvanced = kb.sihuaAdvanced;
     if (kb.liuyue) k.liuyue = kb.liuyue;
+    if (kb.hepan) k.hepan = kb.hepan;
   }
 
   // 简单格局匹配
@@ -291,7 +292,46 @@ function assemblePrompt(data, knowledge) {
       kb += `**古籍参考**（${v.source}）: "${v.text}" — ${v.explanation}\n\n`;
     }
   }
-  // 流月斗君知识
+  // 合盘知识（感情婚姻模块参考）
+  if (knowledge.hepan) {
+    kb += '### 合盘婚恋参考
+
+';
+    const hp = knowledge.hepan;
+    // 星曜匹配：找到命宫主星和夫妻宫主星的配对
+    const mingStar = data.mingPalace?.majorStars?.[0]?.name;
+    const fuqiStar = data.allPalaces?.find(p => p.name === '夫妻宫')?.majorStars?.[0]?.name;
+    if (mingStar && fuqiStar) {
+      const key1 = `${mingStar}_${fuqiStar}`;
+      const key2 = `${fuqiStar}_${mingStar}`;
+      const match = hp.star_matching?.[key1] || hp.star_matching?.[key2];
+      if (match) {
+        kb += `**命宫${mingStar} × 夫妻宫${fuqiStar}**: ⭐${match.score}/5 — ${match.mode}
+
+`;
+      }
+    }
+    // 互为夫妻宫提示
+    if (mingStar && fuqiStar && mingStar === fuqiStar) {
+      kb += `💫 命宫与夫妻宫同星，自我期待与择偶标准高度一致——你寻找的其实是另一个自己。
+
+`;
+    }
+    // 桃花星提示
+    const allMinor = data.allPalaces?.flatMap(p => (p.minorStars || []).map(s => s.name)) || [];
+    const taohuaHits = ['红鸾','天喜','咸池','天姚'].filter(t => allMinor.includes(t));
+    if (taohuaHits.length > 0) {
+      kb += `🌸 命盘桃花星: ${taohuaHits.join('、')}。${hp.taohua_weight?.['红鸾天喜同宫对拱']?.slice(0,50)}...
+
+`;
+    }
+    // 伦理边界
+    if (hp.ethics?.['核心原则']) {
+      kb += `**合盘伦理**: ${hp.ethics['核心原则']}
+
+`;
+    }
+  }
   if (knowledge.liuyue) {
     const ly = knowledge.liuyue;
     kb += '### 流月运势参考\n\n';
