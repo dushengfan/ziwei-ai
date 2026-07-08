@@ -345,6 +345,60 @@ body {
     仅供娱乐与自我探索参考
   </p>
   <p id="quota-badge" style="font-size:12px;color:#6b6080;text-align:center;margin-top:6px;">🎫 今日剩余：— / 5 次</p>
+
+  <!-- 🔮 深度解读专区 -->
+  <div style="width:100%;max-width:420px;margin-top:24px;">
+    <h3 style="font-size:16px;color:var(--gold-light);text-align:center;margin-bottom:14px;">🔮 深度解读专区 <span style="font-size:11px;color:#9088a0;font-weight:400;">· 付费专题</span></h3>
+    <div id="premium-cards" style="display:flex;flex-direction:column;gap:10px;">
+      <!-- 卡片1: 十年大限 -->
+      <div class="card premium-card" style="border:1px solid rgba(124,58,237,0.5);background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(124,58,237,0.02));">
+        <div style="padding:14px 16px;">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <span style="font-size:16px;font-weight:600;color:#e0dce8;">📜 十年大限</span>
+              <p style="font-size:13px;color:#9088a0;margin:4px 0 0;">看清未来40年人生节奏，把握每个关键转折</p>
+            </div>
+            <span style="font-size:18px;font-weight:700;color:var(--gold-light);white-space:nowrap;">¥29.9</span>
+          </div>
+          <button class="btn-primary" style="margin-top:12px;font-size:14px;padding:10px;animation:none;" onclick="startPremium('decade')">
+            ✨ 立即解锁（消耗3次）
+          </button>
+        </div>
+      </div>
+
+      <!-- 卡片2: 双人合盘 -->
+      <div class="card premium-card" style="border:1px solid rgba(212,168,83,0.5);background:linear-gradient(135deg,rgba(212,168,83,0.08),rgba(212,168,83,0.02));">
+        <div style="padding:14px 16px;">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <span style="font-size:16px;font-weight:600;color:#e0dce8;">💞 双人合盘</span>
+              <p style="font-size:13px;color:#9088a0;margin:4px 0 0;">洞悉你们之间的星辰密码，找到最舒服的相处方式</p>
+            </div>
+            <span style="font-size:18px;font-weight:700;color:var(--gold-light);white-space:nowrap;">¥39.9</span>
+          </div>
+          <button class="btn-primary" style="margin-top:12px;font-size:14px;padding:10px;animation:none;" onclick="startPremium('synastry')">
+            ✨ 立即解锁（消耗4次）
+          </button>
+        </div>
+      </div>
+
+      <!-- 卡片3: 流月精批 -->
+      <div class="card premium-card" style="border:1px solid rgba(59,130,246,0.5);background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(59,130,246,0.02));">
+        <div style="padding:14px 16px;">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <span style="font-size:16px;font-weight:600;color:#e0dce8;">📅 流月精批</span>
+              <p style="font-size:13px;color:#9088a0;margin:4px 0 0;">未来365天逐月导航，不错过每一个高光时刻</p>
+            </div>
+            <span style="font-size:18px;font-weight:700;color:var(--gold-light);white-space:nowrap;">¥19.9</span>
+          </div>
+          <button class="btn-primary" style="margin-top:12px;font-size:14px;padding:10px;animation:none;" onclick="startPremium('monthly')">
+            ✨ 立即解锁（消耗2次）
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════ 结果页 ═══════════ -->
@@ -353,6 +407,7 @@ body {
   <div style="width:100%;max-width:420px;display:flex;align-items:center;margin-bottom:12px;">
     <button onclick="goHome()" style="background:none;border:none;color:#9088a0;font-size:24px;cursor:pointer;padding:4px 8px;">←</button>
     <span style="font-size:14px;color:#9088a0;">命盘解读</span>
+    <span id="premium-badge" style="display:none;font-size:13px;color:var(--gold-light);margin-left:8px;padding:2px 10px;border:1px solid var(--gold);border-radius:10px;background:rgba(212,168,83,0.1);">🔮 专题</span>
   </div>
 
   <!-- 星盘图卡片 -->
@@ -1071,6 +1126,108 @@ async function doPurchase(productType) {
   }
   btn.textContent = '✨ 确认购买 ¥' + PURCHASE_PACKAGES.find(p => p.type === productType)?.price;
   btn.disabled = false;
+}
+
+// ============================================================
+// 付费专题解读流程
+// ============================================================
+const PREMIUM_META = {
+  decade:  { label: '📜 十年大限深度推演', cost: 3, price: 29.9 },
+  synastry:{ label: '💞 双人合盘深度解读', cost: 4, price: 39.9 },
+  monthly: { label: '📅 流月精批',           cost: 2, price: 19.9 },
+};
+
+async function startPremium(readingType) {
+  const r = await fetch('/api/quota');
+  const q = await r.json();
+  const paid = q.paidRemaining || 0;
+  const cost = PREMIUM_META[readingType].cost;
+
+  if (paid < cost) {
+    document.getElementById('purchase-subtitle').textContent = `此专题需消耗 ${cost} 次付费额度，当前剩余 ${paid} 次`;
+    showPurchaseModal();
+    return;
+  }
+
+  if (readingType === 'synastry') {
+    pendingAdvanced = null;
+    showHepanForm();
+    const origSubmit = submitHepan;
+    submitHepan = async function() {
+      submitHepan = origSubmit;
+      const y = document.getElementById('hp-year').value;
+      const m = String(document.getElementById('hp-month').value).padStart(2, '0');
+      const d = String(document.getElementById('hp-day').value).padStart(2, '0');
+      const partner = { solar_date: `${y}-${m}-${d}`, time: document.getElementById('hp-time').value, city: document.getElementById('hp-city').value.trim() || null, gender: hpGender };
+      document.getElementById('hepan-form-modal').classList.remove('active');
+      doPremiumStream(readingType, { partner, relation: document.getElementById('hp-relation').value });
+    };
+    return;
+  }
+
+  doPremiumStream(readingType, null);
+}
+
+async function doPremiumStream(readingType, extraData) {
+  showTransition(() => {
+    showPage('page-result');
+
+    document.getElementById('premium-badge').style.display = 'inline';
+    document.getElementById('premium-badge').textContent = PREMIUM_META[readingType].label;
+    document.getElementById('tab-nav').style.display = 'none';
+    document.getElementById('tab-content').style.display = 'none';
+    document.querySelector('.advanced-card').style.display = 'none';
+    document.querySelector('.star-chart').parentElement.style.display = 'none';
+    document.getElementById('reading-disclaimer').style.display = 'none';
+
+    const content = document.getElementById('tab-content');
+    content.style.display = 'block';
+    content.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:60px 0;"><div class="loading-spinner"></div><p style="color:#9088a0;font-size:14px;">正在推演${PREMIUM_META[readingType].label}...</p></div>`;
+
+    const body = {
+      solar_date: submitParams?.solar_date || '1990-06-15',
+      time: submitParams?.time || '14:30',
+      city: submitParams?.city || null,
+      gender: submitParams?.gender || '男',
+      readingType
+    };
+
+    if (readingType === 'synastry' && extraData) {
+      body.partner_solar_date = extraData.partner.solar_date;
+      body.partner_time = extraData.partner.time;
+      body.partner_city = extraData.partner.city;
+      body.partner_gender = extraData.partner.gender;
+    }
+
+    fetch('/api/reading/premium', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(async response => {
+      if (!response.ok) { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ 请求失败</p>'; return; }
+      let buf = '', fullText = '';
+      const reader = response.body.getReader(), decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read(); if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n'); buf = lines.pop() || '';
+        for (const line of lines) {
+          const t = line.trim(); if (!t || !t.startsWith('data: ')) continue;
+          try {
+            const m = JSON.parse(t.slice(6));
+            if (m.type === 'text') { fullText += m.content; content.innerHTML = marked.parse(fullText); content.classList.add('typing-cursor'); }
+            else if (m.type === 'done') { content.classList.remove('typing-cursor'); content.innerHTML = marked.parse(fullText); document.getElementById('reading-disclaimer').style.display = 'block'; refreshQuota(); }
+            else if (m.type === 'error') {
+              if (m.code === 'INSUFFICIENT_PAID') {
+                content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#ff6b6b;">🚫 ${m.message}</p><button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.2);border:1px solid var(--gold);border-radius:10px;color:var(--gold-light);font-size:14px;cursor:pointer;">💎 立即购买次数</button></div>`;
+              } else {
+                content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ '+m.message+'</p>';
+              }
+            }
+          } catch {}
+        }
+      }
+    }).catch(e => { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ 网络错误</p>'; });
+  });
 }
 
 </script>
