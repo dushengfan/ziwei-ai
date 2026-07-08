@@ -863,6 +863,101 @@ app.post('/api/advanced/hepan', async (req, res) => {
 // ============================================================
 // 付费 API 路由
 // ============================================================
+
+// 专题价格配置：每个专题消耗付费次数
+const PREMIUM_COST = { decade: 3, synastry: 4, monthly: 2 };
+
+// 加载 premium System Prompts
+function loadPremiumPrompts() {
+  const ppPath = path.join(__dirname, 'knowledge', 'system_prompt_premium.md');
+  if (!fs.existsSync(ppPath)) return {};
+  const raw = fs.readFileSync(ppPath, 'utf-8');
+  const prompts = {};
+  const sections = raw.split('\n---\n');
+  for (const sec of sections) {
+    const tagMatch = sec.match(/\[TAG:(\w+)\]/);
+    if (tagMatch) prompts[tagMatch[1]] = sec.replace(/^.*\[TAG:\w+\]\s*\n?/, '').trim();
+  }
+  return prompts;
+}
+const PREMIUM_PROMPTS = loadPremiumPrompts();
+
+// ============================================================
+// 付费专题解读 API
+// ============================================================
+app.post('/api/reading/premium', async (req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
+
+  try {
+    const { solar_date, time, city, gender, readingType, partner_solar_date, partner_time, partner_city, partner_gender } = req.body;
+    if (!readingType || !PREMIUM_COST[readingType]) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: '无效的专题类型' })}\n\n`);
+      return res.end();
+    }
+
+    const cost = PREMIUM_COST[readingType];
+    const clientId = payment.getClientId(req);
+
+    // 消耗付费次数
+    if (!payment.consumeMultiplePaidQuota(clientId, cost)) {
+      const pq = payment.getPaidQuota(clientId);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: `付费次数不足！本专题需消耗 ${cost} 次付费额度，当前剩余 ${pq.paidRemaining} 次`, code: 'INSUFFICIENT_PAID', needPurchase: true, required: cost, remaining: pq.paidRemaining })}\n\n`);
+      return res.end();
+    }
+
+    // 排盘
+    const chart = calcChart(solar_date, time, city, gender);
+    let knowledge = chart.knowledge;
+    let dataPayload = { basic: chart.data.basic, mingPalace: chart.data.mingPalace, allPalaces: chart.data.allPalaces, birthSihua: chart.data.birthSihua, horoscopeData: chart.data.horoscopeData };
+
+    // 合盘：排出第二张盘
+    if (readingType === 'synastry' && partner_solar_date && partner_time) {
+      const partnerChart = calcChart(partner_solar_date, partner_time, partner_city, partner_gender);
+      dataPayload.partner = {
+        basic: partnerChart.data.basic,
+        mingPalace: partnerChart.data.mingPalace,
+        fuqiPalace: partnerChart.data.allPalaces?.find(p => p.name === '夫妻宫'),
+        birthSihua: partnerChart.data.birthSihua,
+      };
+    }
+
+    const systemPrompt = PREMIUM_PROMPTS[readingType] || '你是紫微斗数专家。';
+    const userMessage = [
+      '请根据以下命盘数据进行专题解读。',
+      '', '## 命盘数据', '```json', JSON.stringify(dataPayload), '```',
+      '', '请严格按照 System Prompt 要求的格式输出。',
+    ].join('\n');
+
+    // 流式
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) { res.write(`data: ${JSON.stringify({ type: 'error', message: '未配置 DEEPSEEK_API_KEY' })}\n\n`); return res.end(); }
+
+    res.write(`data: ${JSON.stringify({ type: 'meta', readingType, cost, paidRemaining: payment.getPaidQuota(clientId).paidRemaining })}\n\n`);
+
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }], stream: true, temperature: 0.7, max_tokens: 4096 })
+    });
+    if (!response.ok) { res.write(`data: ${JSON.stringify({ type: 'error', message: `DeepSeek API ${response.status}` })}\n\n`); return res.end(); }
+
+    const reader = response.body.getReader(); const decoder = new TextDecoder(); let buf = '';
+    while (true) {
+      const { done, value } = await reader.read(); if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop() || '';
+      for (const line of lines) {
+        const t = line.trim(); if (!t || !t.startsWith('data: ')) continue;
+        const d2 = t.slice(6); if (d2 === '[DONE]') { res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`); continue; }
+        try { const j = JSON.parse(d2); const c = j.choices?.[0]?.delta?.content; if (c) res.write(`data: ${JSON.stringify({ type: 'text', content: c })}\n\n`); } catch {}
+      }
+    }
+    res.end();
+  } catch (e) {
+    res.write(`data: ${JSON.stringify({ type: 'error', message: e.message })}\n\n`);
+    res.end();
+  }
+});
+
 app.post('/api/pay/order', payment.createOrder);
 app.get('/api/pay/order/:orderId', payment.queryOrder);
 app.post('/api/pay/callback', payment.paymentCallback);
