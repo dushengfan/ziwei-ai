@@ -237,7 +237,57 @@ function retrieveKnowledge(data) {
 // ============================================================
 // Prompt 组装
 // ============================================================
-function assemblePrompt(data, knowledge) {
+// 模块子 Prompt
+const MODULE_PROMPTS = {
+  overview: `
+你现在只需要输出【命盘概览】这一个模块。
+要求：
+- 用3-5句话总结命盘整体气质和人生主题
+- 点出命宫主星及其核心特质
+- 若有明显格局在此简要点出
+- 给命主一个"一句话画像"
+- 只输出内容，不要输出模块标题之外的任何解释文字
+- 结尾附上免责声明："本内容由 AI 基于传统国学文化生成，仅供娱乐与自我探索参考，命运掌握在您自己手中。"`,
+
+  character: `
+你现在只需要输出【性格底色】这一个模块。
+要求：
+- 深入分析命宫主星和身宫主星带来的先天性格
+- 结合辅星和煞星修饰性格细节
+- 用MBTI/依恋理论等现代心理学语言类比
+- 指出性格优势和盲区
+- 只输出内容，不要输出模块标题之外的任何解释文字`,
+
+  career: `
+你现在只需要输出【事业财运】这一个模块。
+要求：
+- 分析官禄宫主星→适合的行业类型和职场角色
+- 分析财帛宫主星→赚钱模式
+- 结合三方四正判断事业发展路径
+- 给出2-3条具体的现代职业建议
+- 只输出内容，不要输出模块标题之外的任何解释文字`,
+
+  love: `
+你现在只需要输出【感情婚姻】这一个模块。
+要求：
+- 分析夫妻宫主星→择偶倾向和亲密关系中的核心需求
+- 结合命宫与夫妻宫的关系看互动模式
+- 利用合盘知识（如已提供）分析潜在匹配度
+- 给出2-3条感情经营建议，用依恋理论和沟通心理学语言
+- 若无伴侣则谈"适合什么样的关系"
+- 只输出内容，不要输出模块标题之外的任何解释文字`,
+
+  year: `
+你现在只需要输出【近期流年】这一个模块。
+要求：
+- 基于大限/流年数据分析当前阶段运势趋势
+- 提示需要把握的机会和需谨慎的挑战
+- 化忌所在宫位=今年的成长课题
+- 给出1-2条具体可行的行动建议
+- 只输出内容，不要输出模块标题之外的任何解释文字`
+};
+
+function assemblePrompt(data, knowledge, module) {
   const spPath = path.join(__dirname, 'knowledge', 'system_prompt.md');
   const systemPrompt = fs.existsSync(spPath) ? fs.readFileSync(spPath, 'utf-8') : '你是一位紫微斗数命理师。';
 
@@ -352,7 +402,7 @@ function assemblePrompt(data, knowledge) {
   }
 
   const userMessage = [
-    '请根据以下紫微斗数命盘数据进行完整解读。',
+    '请根据以下紫微斗数命盘数据进行解读。',
     '',
     '## 命盘数据',
     '```json',
@@ -361,7 +411,7 @@ function assemblePrompt(data, knowledge) {
     '',
     kb,
     '',
-    '请严格按照 System Prompt 要求的五个模块（【命盘概览】→【性格底色】→【事业财运】→【感情婚姻】→【近期流年】）进行完整解读，并在结尾附上免责声明。'
+    (MODULE_PROMPTS[module] || '请进行完整解读，包含五个模块。'),
   ].join('\n');
 
   return { systemPrompt, userMessage };
@@ -439,7 +489,7 @@ app.post('/api/reading', async (req, res) => {
       res.write(`data: ${JSON.stringify({ type: 'error', message: '今日免费额度已用完（每日5次），请明天再来探索命盘 🌙', quota: getQuota() })}\n\n`);
       return res.end();
     }
-    const { solar_date, time, city, gender, birthDate, hourIdx } = req.body;
+    const { solar_date, time, city, gender, birthDate, hourIdx, module } = req.body;
 
     let adjustedDate, shichenIdx, shichenName, correctionInfo;
 
@@ -450,7 +500,7 @@ app.post('/api/reading', async (req, res) => {
       shichenIdx = result.hourIdx;
       shichenName = result.shichenName;
       correctionInfo = result;
-      console.log(`  ⏰ ${result.description}`);
+      console.log(`  ⏰ ${result.description} | 模块: ${module || 'overview'}`);
     } else if (birthDate !== undefined && hourIdx != null) {
       if (!gender) return res.status(400).json({ error: '缺少必填参数 gender' });
       adjustedDate = birthDate;
@@ -470,7 +520,7 @@ app.post('/api/reading', async (req, res) => {
 
     const data = cleanData(a, gender, shichenIdx);
     const knowledge = retrieveKnowledge(data);
-    const { systemPrompt, userMessage } = assemblePrompt(data, knowledge);
+    const { systemPrompt, userMessage } = assemblePrompt(data, knowledge, module || 'overview');
 
     // SSE headers
     res.writeHead(200, {
