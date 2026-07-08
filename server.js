@@ -151,7 +151,7 @@ function loadKb() {
   if (_kb) return _kb;
   const dirs = [path.join(__dirname, 'knowledge'), path.join(os.homedir(), 'Desktop', '命理知识库')];
   const load = (f) => { for (const d of dirs) { const p = path.join(d, f); if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf-8')); } return []; };
-  _kb = { stars: load('palace.json'), palaces: load('stars.json'), sihua: load('sihua.json'), patterns: load('patterns.json') || {}, daxian: load('daxian.json') || null, sihuaAdvanced: load('sihua_advanced.json') || null };
+  _kb = { stars: load('palace.json'), palaces: load('stars.json'), sihua: load('sihua.json'), patterns: load('patterns.json') || {}, daxian: load('daxian.json') || null, sihuaAdvanced: load('sihua_advanced.json') || null, liuyue: load('liuyue.json') || null };
   return _kb;
 }
 
@@ -217,6 +217,7 @@ function retrieveKnowledge(data) {
   if (kb.daxian && data.horoscopeData) {
     k.daxian = kb.daxian;
     k.sihuaAdvanced = kb.sihuaAdvanced;
+    if (kb.liuyue) k.liuyue = kb.liuyue;
   }
 
   // 简单格局匹配
@@ -288,6 +289,21 @@ function assemblePrompt(data, knowledge) {
     if (sa.ancient_verses?.length) {
       const v = sa.ancient_verses[0];
       kb += `**古籍参考**（${v.source}）: "${v.text}" — ${v.explanation}\n\n`;
+    }
+  }
+  // 流月斗君知识
+  if (knowledge.liuyue) {
+    const ly = knowledge.liuyue;
+    kb += '### 流月运势参考\n\n';
+    if (ly.monthly_sihua_rules?.core_rule) {
+      kb += `**核心原则**: ${ly.monthly_sihua_rules.core_rule}\n\n`;
+    }
+    if (ly.monthly_sihua_rules?.trigger_levels) {
+      kb += `**应期判断**: ${ly.monthly_sihua_rules.trigger_levels}\n\n`;
+    }
+    if (ly.ancient_verses?.length) {
+      const v0 = ly.ancient_verses[0];
+      kb += `**斗君口诀**（${v0.source}）: "${v0.text}"\n\n`;
     }
   }
   if (knowledge.patterns.length) {
