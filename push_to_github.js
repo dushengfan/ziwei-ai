@@ -46,6 +46,7 @@ const FILES = [
   'knowledge/hepan.json',
   'knowledge/system_prompt.md',
   'AGENTS.md',
+  'payment.js',
   'push_to_github.js',
   'wechat-app/app.json',
   'wechat-app/app.js',
