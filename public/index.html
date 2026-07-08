@@ -808,6 +808,127 @@ async function refreshQuota() {
   } catch {}
 }
 refreshQuota();
+
+// ============================================================
+// 高级模块：解锁 + 合盘表单 + 流式输出
+// ============================================================
+let pendingAdvanced = null;
+let unlockedModules = {};
+let hpGender = '女';
+
+const ADVANCED_LABELS = {
+  daxian: { title: '十年大限推演', desc: '此乃天机深度推演，需消耗 1 次算力积分' },
+  liuyue: { title: '2026 流月精批', desc: '流月运势乃精细天机，需消耗 1 次算力积分' },
+  hepan:  { title: '双人合盘解读', desc: '双人命盘合参涉及因果天机，需消耗 1 次算力积分' }
+};
+
+function triggerAdvanced(module) {
+  if (!submitParams) { alert('请先在首页完成基础排盘'); return; }
+  if (module === 'hepan') { pendingAdvanced = 'hepan'; showHepanForm(); return; }
+  if (unlockedModules[module]) { doAdvancedStream(module, null); return; }
+  pendingAdvanced = module;
+  document.getElementById('unlock-title').textContent = ADVANCED_LABELS[module].title;
+  document.getElementById('unlock-desc').textContent = ADVANCED_LABELS[module].desc;
+  document.getElementById('unlock-modal').classList.add('active');
+}
+
+function closeModal() { document.getElementById('unlock-modal').classList.remove('active'); pendingAdvanced = null; }
+
+function doUnlock(type) {
+  const module = pendingAdvanced; closeModal(); if (!module) return;
+  unlockedModules[module] = true;
+  const idx = { daxian: 0, liuyue: 1, hepan: 2 }[module];
+  const btns = document.querySelectorAll('.adv-btn');
+  if (btns[idx]) btns[idx].querySelector('.adv-tag').textContent = '✅';
+  doAdvancedStream(module, null);
+}
+
+function showHepanForm() {
+  const ySel = document.getElementById('hp-year'), mSel = document.getElementById('hp-month');
+  if (ySel.options.length <= 1) {
+    for (let y = new Date().getFullYear(); y >= 1940; y--) { const o = document.createElement('option'); o.value = y; o.textContent = y + '年'; if (y === 1992) o.selected = true; ySel.appendChild(o); }
+    for (let m = 1; m <= 12; m++) { const o = document.createElement('option'); o.value = m; o.textContent = m + '月'; if (m === 3) o.selected = true; mSel.appendChild(o); }
+    updateHepanDays(); mSel.onchange = updateHepanDays; ySel.onchange = updateHepanDays;
+  }
+  document.getElementById('hepan-form-modal').classList.add('active');
+}
+
+function updateHepanDays() {
+  const y = parseInt(document.getElementById('hp-year').value), m = parseInt(document.getElementById('hp-month').value);
+  const dSel = document.getElementById('hp-day'), prev = parseInt(dSel.value) || 1;
+  const days = new Date(y, m, 0).getDate(); dSel.innerHTML = '';
+  for (let d = 1; d <= days; d++) { const o = document.createElement('option'); o.value = d; o.textContent = d + '日'; if (d === Math.min(prev, days)) o.selected = true; dSel.appendChild(o); }
+}
+
+function selectHpGender(btn) {
+  document.querySelectorAll('#hepan-form-modal .gender-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); hpGender = btn.dataset.g;
+}
+
+let _hepanUnlock = null;
+async function submitHepan() {
+  const y = document.getElementById('hp-year').value;
+  const m = String(document.getElementById('hp-month').value).padStart(2, '0');
+  const d = String(document.getElementById('hp-day').value).padStart(2, '0');
+  const partner = { solar_date: `${y}-${m}-${d}`, time: document.getElementById('hp-time').value, city: document.getElementById('hp-city').value.trim() || null, gender: hpGender };
+  const relation = document.getElementById('hp-relation').value;
+  document.getElementById('hepan-form-modal').classList.remove('active');
+  _hepanUnlock = { partner, relation };
+  pendingAdvanced = 'hepan';
+  document.getElementById('unlock-title').textContent = ADVANCED_LABELS.hepan.title;
+  document.getElementById('unlock-desc').textContent = ADVANCED_LABELS.hepan.desc;
+  document.getElementById('unlock-modal').classList.add('active');
+}
+
+// 覆写 doUnlock 只针对合盘（hepan 需传 partner 参数）
+const _origDoUnlock = doUnlock;
+doUnlock = function(type) {
+  const module = pendingAdvanced;
+  if (module === 'hepan' && _hepanUnlock) {
+    closeModal(); unlockedModules.hepan = true;
+    const btns = document.querySelectorAll('.adv-btn'); if (btns[2]) btns[2].querySelector('.adv-tag').textContent = '✅';
+    doAdvancedStream('hepan', _hepanUnlock);
+    _hepanUnlock = null;
+    return;
+  }
+  return _origDoUnlock(type);
+};
+
+async function doAdvancedStream(module, extraData) {
+  const content = document.getElementById('advanced-content');
+  content.style.display = 'block';
+  const labels = { daxian: '十年大限深度推演', liuyue: '流月精批', hepan: '双人合盘解读' };
+  content.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 0;"><div class="loading-spinner"></div><p style="color:#9088a0;font-size:14px;">正在推演${labels[module]}...</p></div>`;
+
+  const urls = { daxian: '/api/advanced/daxian', liuyue: '/api/advanced/liuyue', hepan: '/api/advanced/hepan' };
+  let body = { ...submitParams };
+  if (module === 'liuyue') body.target_year = 2026;
+  if (module === 'hepan' && extraData) {
+    body = { user1: { solar_date: submitParams.solar_date, time: submitParams.time, city: submitParams.city, gender: submitParams.gender }, user2: extraData.partner, relation: extraData.relation };
+  }
+
+  try {
+    const response = await fetch(urls[module], { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!response.ok) { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ 请求失败</p>'; return; }
+    let buf = '', fullText = '';
+    const reader = response.body.getReader(), decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read(); if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop() || '';
+      for (const line of lines) {
+        const t = line.trim(); if (!t || !t.startsWith('data: ')) continue;
+        try {
+          const m = JSON.parse(t.slice(6));
+          if (m.type === 'text') { fullText += m.content; content.innerHTML = marked.parse(fullText); content.classList.add('typing-cursor'); }
+          else if (m.type === 'done') { content.classList.remove('typing-cursor'); content.innerHTML = marked.parse(fullText); }
+          else if (m.type === 'error') { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ '+m.message+'</p>'; }
+        } catch {}
+      }
+    }
+  } catch (e) { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ 网络错误</p>'; }
+}
+
 </script>
 </body>
 </html>
