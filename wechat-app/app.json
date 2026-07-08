@@ -1,12 +1,18 @@
 {
   "pages": [
-    "pages/index/index"
+    "pages/index/index",
+    "pages/pay/pay"
   ],
   "window": {
     "navigationBarTitleText": "AI 紫微斗数",
     "navigationBarBackgroundColor": "#0a0a1a",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#0a0a1a"
+    "backgroundColor": "#0a0a1a",
+    "backgroundTextStyle": "light"
+  },
+  "networkTimeout": {
+    "request": 60000,
+    "connectSocket": 60000
   },
   "sitemapLocation": "sitemap.json"
 }
