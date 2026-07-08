@@ -197,29 +197,23 @@ body {
 .chart-cell.ming .cell-name { color: var(--gold-light); }
 
 /* ─── Streaming Content ─── */
-#reading-content {
-  width: 100%; max-width: 420px;
-  line-height: 1.8;
-  font-size: 15px;
-  color: #d8d4e8;
-}
-#reading-content h1, #reading-content h2, #reading-content h3 {
+#tab-content h1, #tab-content h2, #tab-content h3 {
   color: var(--gold-light);
   margin: 20px 0 10px;
 }
-#reading-content h2 { font-size: 19px; border-bottom: 1px solid rgba(212,168,83,0.2); padding-bottom: 6px; }
-#reading-content h3 { font-size: 16px; }
-#reading-content p { margin: 10px 0; }
-#reading-content ul, #reading-content ol { padding-left: 20px; }
-#reading-content li { margin: 4px 0; }
-#reading-content strong { color: #fff; }
-#reading-content blockquote {
+#tab-content h2 { font-size: 19px; border-bottom: 1px solid rgba(212,168,83,0.2); padding-bottom: 6px; }
+#tab-content h3 { font-size: 16px; }
+#tab-content p { margin: 10px 0; }
+#tab-content ul, #tab-content ol { padding-left: 20px; }
+#tab-content li { margin: 4px 0; }
+#tab-content strong { color: #fff; }
+#tab-content blockquote {
   border-left: 3px solid var(--gold);
   padding-left: 14px; color: #a098c0;
   margin: 12px 0;
 }
-#reading-content code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-#reading-content pre { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; }
+#tab-content code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+#tab-content pre { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; }
 
 /* ─── Typewriter Cursor ─── */
 .typing-cursor::after {
@@ -239,6 +233,22 @@ body {
   animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Tab Navigation ─── */
+.tab-btn {
+  flex: 1; padding: 10px 2px;
+  background: transparent;
+  border: none; border-bottom: 2px solid transparent;
+  color: #9088a0; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.3s;
+  white-space: nowrap; letter-spacing: 0.3px;
+  font-family: inherit;
+}
+.tab-btn:hover { color: #c0b8d8; }
+.tab-btn.active {
+  color: var(--gold-light);
+  border-bottom-color: var(--gold);
+}
 
 /* ─── Transition overlay ─── */
 #transition-overlay {
@@ -358,9 +368,20 @@ body {
     </p>
   </div>
 
-  <!-- 解读内容区 -->
-  <div id="reading-content">
-    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;" id="reading-loading">
+  <!-- Tab 导航栏 -->
+  <div class="card" style="padding:4px;margin-bottom:12px;overflow:hidden;">
+    <div id="tab-nav" style="display:flex;gap:0;">
+      <button class="tab-btn active" data-module="overview" onclick="switchTab('overview')">🏮 概览</button>
+      <button class="tab-btn" data-module="character" onclick="switchTab('character')">🎭 性格</button>
+      <button class="tab-btn" data-module="career" onclick="switchTab('career')">💼 事业</button>
+      <button class="tab-btn" data-module="love" onclick="switchTab('love')">💕 感情</button>
+      <button class="tab-btn" data-module="year" onclick="switchTab('year')">🌊 流年</button>
+    </div>
+  </div>
+
+  <!-- Tab 内容区 -->
+  <div id="tab-content" style="width:100%;max-width:420px;line-height:1.8;font-size:15px;color:#d8d4e8;min-height:120px;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;">
       <div class="loading-spinner"></div>
       <p style="color:#9088a0;font-size:14px;">AI 正在推演你的命盘...</p>
     </div>
@@ -523,8 +544,11 @@ function showPage(pageId) {
 }
 
 function goHome() {
-  document.getElementById('reading-content').innerHTML = `
-    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;" id="reading-loading">
+  tabCache = {};
+  activeTab = null;
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.classList.remove('loaded'); });
+  document.getElementById('tab-content').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;">
       <div class="loading-spinner"></div>
       <p style="color:#9088a0;font-size:14px;">AI 正在推演你的命盘...</p>
     </div>
@@ -545,7 +569,20 @@ async function submitForm() {
 
   showTransition(() => {
     showPage('page-result');
-    startReading(solar_date, time, city, selectedGender);
+    // 重置 tab 状态
+    tabCache = {}; activeTab = null; chartInfo = null;
+    document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.classList.remove('loaded'); });
+    document.getElementById('tab-content').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;">
+        <div class="loading-spinner"></div>
+        <p style="color:#9088a0;font-size:14px;">AI 正在推演你的命盘...</p>
+      </div>
+    `;
+    document.getElementById('reading-disclaimer').style.display = 'none';
+    // 提交参数存起来供 tab 使用
+    submitParams = { solar_date, time, city, gender: selectedGender };
+    // 默认加载概览
+    switchTab('overview');
   });
 }
 
@@ -601,25 +638,47 @@ function renderStarChart(data) {
 }
 
 // ============================================================
-// 流式解读
+// Tab 切换 + 按需流式加载
 // ============================================================
-async function startReading(solar_date, time, city, gender) {
-  const contentDiv = document.getElementById('reading-content');
-  const disclaimer = document.getElementById('reading-disclaimer');
+let tabCache = {};       // { module: htmlString }
+let activeTab = null;
+let chartInfo = null;
+let submitParams = null;
 
-  contentDiv.innerHTML = `
-    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;" id="reading-loading">
+async function switchTab(module) {
+  if (activeTab === module) return;
+  activeTab = module;
+
+  // 更新 Tab 样式
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.module === module);
+  });
+
+  const content = document.getElementById('tab-content');
+
+  // 命中缓存
+  if (tabCache[module]) {
+    content.innerHTML = tabCache[module];
+    content.classList.remove('typing-cursor');
+    return;
+  }
+
+  // 显示 loading
+  const moduleNames = { overview: '命盘概览', character: '性格底色', career: '事业财运', love: '感情婚姻', year: '近期流年' };
+  content.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;">
       <div class="loading-spinner"></div>
-      <p style="color:#9088a0;font-size:14px;">AI 正在推演你的命盘...</p>
-      <p style="color:#6b6080;font-size:12px;" id="correctionHint"></p>
+      <p style="color:#9088a0;font-size:14px;">正在解读${moduleNames[module]}...</p>
     </div>
   `;
+
+  if (!submitParams) return;
 
   try {
     const response = await fetch('/api/reading', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ solar_date, time, city, gender })
+      body: JSON.stringify({ ...submitParams, module })
     });
 
     if (!response.ok) {
@@ -627,66 +686,60 @@ async function startReading(solar_date, time, city, gender) {
       let err;
       try { err = JSON.parse(errText); } catch { err = { error: '未知错误' }; }
       if (response.status === 429) {
-        contentDiv.innerHTML = `<p style="color:#ff6b6b;text-align:center;">🚫 ${err.error || '今日额度已用完'}</p>`;
+        content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">🚫 ${err.error || '今日额度已用完'}</p>`;
         refreshQuota();
       } else {
-        contentDiv.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ 请求失败: ${err.error || errText}</p>`;
+        content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ ${err.error || errText}</p>`;
       }
       return;
     }
 
     let buffer = '';
     let fullText = '';
-    let chartData = null;
-
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop() || '';
-
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed || !trimmed.startsWith('data: ')) continue;
         try {
           const msg = JSON.parse(trimmed.slice(6));
-
           if (msg.type === 'chart') {
-            chartData = msg.data;
-            renderStarChart(chartData);
-            // 显示换算信息
-            const hint = document.getElementById('correctionHint');
-            if (hint && msg.correction?.description) {
-              hint.textContent = '⏳ ' + msg.correction.description;
+            if (!chartInfo) {
+              chartInfo = msg.data;
+              renderStarChart(chartInfo);
             }
-            contentDiv.innerHTML = '';
+            content.innerHTML = '';
             fullText = '';
           } else if (msg.type === 'text') {
             fullText += msg.content;
-            // 平滑渲染：用 marked 解析全文，保留打字机光标
             const html = marked.parse(fullText);
-            contentDiv.innerHTML = html;
-            contentDiv.classList.add('typing-cursor');
+            content.innerHTML = html;
+            content.classList.add('typing-cursor');
           } else if (msg.type === 'done') {
-            contentDiv.classList.remove('typing-cursor');
-            disclaimer.style.display = 'block';
+            content.classList.remove('typing-cursor');
             const finalHtml = marked.parse(fullText);
-            contentDiv.innerHTML = finalHtml;
-            refreshQuota(); // 完成后刷新配额
+            content.innerHTML = finalHtml;
+            tabCache[module] = finalHtml;
+            // 标记已加载
+            const btn = document.querySelector(`.tab-btn[data-module="${module}"]`);
+            if (btn) btn.classList.add('loaded');
+            refreshQuota();
           } else if (msg.type === 'error') {
-            contentDiv.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ ${msg.message}</p>`;
+            content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ ${msg.message}</p>`;
             refreshQuota();
           }
         } catch {}
       }
     }
   } catch (e) {
-    contentDiv.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ 网络错误: ${e.message}</p>`;
+    content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ 网络错误: ${e.message}</p>`;
   }
 }
 
