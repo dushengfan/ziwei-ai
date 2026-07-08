@@ -151,7 +151,7 @@ function loadKb() {
   if (_kb) return _kb;
   const dirs = [path.join(__dirname, 'knowledge'), path.join(os.homedir(), 'Desktop', '命理知识库')];
   const load = (f) => { for (const d of dirs) { const p = path.join(d, f); if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf-8')); } return []; };
-  _kb = { stars: load('palace.json'), palaces: load('stars.json'), sihua: load('sihua.json'), patterns: load('patterns.json') || {} };
+  _kb = { stars: load('palace.json'), palaces: load('stars.json'), sihua: load('sihua.json'), patterns: load('patterns.json') || {}, daxian: load('daxian.json') || null, sihuaAdvanced: load('sihua_advanced.json') || null };
   return _kb;
 }
 
@@ -213,6 +213,12 @@ function retrieveKnowledge(data) {
   for (const s of allStars) { const m = kb.stars.find(x => x.star_name === s); if (m) k.stars[s] = m; }
   for (const s of data.birthSihua) { const m = kb.sihua.find(x => x.sihua_name === `化${s.type}`); if (m && !k.sihua[`化${s.type}`]) k.sihua[`化${s.type}`] = m; }
 
+  // 大限知识检索
+  if (kb.daxian && data.horoscopeData) {
+    k.daxian = kb.daxian;
+    k.sihuaAdvanced = kb.sihuaAdvanced;
+  }
+
   // 简单格局匹配
   const allPS = new Set(data.allPalaces.flatMap(p => (p.majorStars || []).map(s => s.name)));
   for (const cat of ['吉格', '凶格']) {
@@ -247,6 +253,41 @@ function assemblePrompt(data, knowledge) {
     for (const s of data.birthSihua) {
       const info = knowledge.sihua[`化${s.type}`];
       if (info) kb += `**${s.star}化${s.type}** 在${s.palace}: ${info.basic_meaning}\n\n`;
+    }
+  }
+  // 大限知识（叠宫 + 四化飞星 + 古籍参考）
+  if (knowledge.daxian && data.horoscopeData?.decadal) {
+    kb += '### 大限解读参考\n\n';
+    const d = knowledge.daxian;
+    const decadalPalace = data.horoscopeData.decadal;
+    const birthYear = parseInt(data.basic.solarDate?.split('-')[0] || '1990');
+    const age = new Date().getFullYear() - birthYear;
+    const currentPalace = data.allPalaces.find(p => {
+      const range = p.decadalRange?.match(/\d+/g);
+      if (!range) return false;
+      const start = parseInt(range[0]);
+      return age >= start && age < start + 10;
+    });
+    if (currentPalace && d.piles[currentPalace.name]) {
+      kb += `**当前大限叠${currentPalace.name}**: ${d.piles[currentPalace.name]}\n\n`;
+    }
+    if (decadalPalace.mutagen && decadalPalace.mutagen.length === 4) {
+      kb += `**大限四化**: 化禄-${decadalPalace.mutagen[0]} / 化权-${decadalPalace.mutagen[1]} / 化科-${decadalPalace.mutagen[2]} / 化忌-${decadalPalace.mutagen[3]}\n\n`;
+    }
+    if (d.key_principles) {
+      kb += '**核心断法**:\n';
+      for (const p of d.key_principles.slice(0, 3)) kb += `- ${p}\n`;
+      kb += '\n';
+    }
+  }
+  // 高级四化理论
+  if (knowledge.sihuaAdvanced) {
+    const sa = knowledge.sihuaAdvanced;
+    const trigger = sa.trigger_rules?.['key_insight'];
+    if (trigger) kb += `**四化要诀**: ${trigger}\n\n`;
+    if (sa.ancient_verses?.length) {
+      const v = sa.ancient_verses[0];
+      kb += `**古籍参考**（${v.source}）: "${v.text}" — ${v.explanation}\n\n`;
     }
   }
   if (knowledge.patterns.length) {
