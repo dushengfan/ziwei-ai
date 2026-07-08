@@ -8,6 +8,13 @@
     "urlCheck": false,
     "es6": true,
     "postcss": true,
-    "minified": true
+    "minified": true,
+    "enhance": true,
+    "showShadowRootInWxmlPanel": true
+  },
+  "condition": {
+    "miniprogram": {
+      "list": []
+    }
   }
 }
