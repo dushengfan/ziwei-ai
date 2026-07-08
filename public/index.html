@@ -9,23 +9,37 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
 
+/* CHANGED: 赛博玄学风 Design System 色彩变量 */
 :root {
-  --gold: #d4a853;
+  --gold: #D4AF37;
   --gold-light: #f0d68a;
-  --purple-deep: #0a0a1a;
-  --purple-card: rgba(20, 15, 40, 0.85);
-  --purple-border: rgba(120, 80, 180, 0.4);
-  --star: #e8e0f0;
+  --bg-dark: #0B0714;
+  --bg-mid: #121826;
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: rgba(156, 163, 175, 0.7);
 }
 
 * { box-sizing: border-box; }
+
+/* CHANGED: 深空暗紫黑到藏青的微妙渐变背景，正文 15px/1.7 */
 body {
   font-family: 'Noto Sans SC', sans-serif;
-  background: var(--purple-deep);
-  color: #e0dce8;
+  background: radial-gradient(ellipse at 50% 0%, var(--bg-mid) 0%, var(--bg-dark) 55%, var(--bg-dark) 100%);
+  color: var(--text-primary);
   margin: 0; padding: 0;
   overflow-x: hidden;
   min-height: 100dvh;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* CHANGED: 标题统一使用 Noto Serif SC 衬线体，增加字间距 */
+h1, h2, h3 {
+  font-family: 'Noto Serif SC', serif;
+  letter-spacing: 0.04em;
 }
 
 /* ─── Starfield Background ─── */
@@ -41,8 +55,7 @@ body {
   display: none;
   flex-direction: column;
   align-items: center;
-  padding: 20px 16px 40px;
-  animation: fadeSlideIn 0.6s ease;
+  padding: 28px 18px 48px;
 }
 .page.active { display: flex; }
 
@@ -51,71 +64,128 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Gold Glow ─── */
-.gold-text { background: linear-gradient(135deg, #f0d68a, #d4a853, #b8943e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.gold-border { border: 1px solid rgba(212,168,83,0.5); }
-.gold-glow { box-shadow: 0 0 30px rgba(212,168,83,0.2), 0 0 60px rgba(212,168,83,0.08); }
+/* CHANGED: 新增 fade-in-up 交错入场动效 */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up {
+  animation: fadeInUp 0.6s ease both;
+}
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
 
-/* ─── Cards ─── */
+/* ─── Gold Glow ─── */
+.gold-text {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold), #b8943e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 16px rgba(212, 168, 83, 0.22);
+}
+.gold-border { border: 1px solid rgba(212, 168, 83, 0.5); }
+.gold-glow { box-shadow: 0 0 30px rgba(212, 168, 83, 0.2), 0 0 60px rgba(212, 168, 83, 0.08); }
+
+/* CHANGED: 卡片改为毛玻璃 + 1px 半透明白色边框 + 16px 圆角 + 环境色发光阴影 */
 .card {
-  background: var(--purple-card);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--purple-border);
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
   border-radius: 16px;
   width: 100%; max-width: 420px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 8px 32px rgba(0, 0, 0, 0.22),
+    0 0 40px rgba(212, 168, 83, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 12px 40px rgba(0, 0, 0, 0.28),
+    0 0 50px rgba(212, 168, 83, 0.07);
 }
 
-/* ─── Form ─── */
-.form-group { margin-bottom: 18px; }
-.form-label { display: block; font-size: 13px; color: #b0a8c8; margin-bottom: 6px; letter-spacing: 0.5px; }
+/* CHANGED: 表单标签使用琉璃灰，增大间距 */
+.form-group { margin-bottom: 22px; }
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  letter-spacing: 0.6px;
+}
 .form-input, .form-select {
-  width: 100%; padding: 12px 14px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--purple-border);
-  border-radius: 10px;
-  color: #e0dce8; font-size: 16px;
+  width: 100%; padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  color: var(--text-primary); font-size: 15px;
   font-family: inherit;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   -webkit-appearance: none;
+}
+.form-input:hover, .form-select:hover {
+  border-color: rgba(212, 168, 83, 0.28);
 }
 .form-input:focus, .form-select:focus {
   outline: none;
   border-color: var(--gold);
-  box-shadow: 0 0 15px rgba(212,168,83,0.15);
+  background: rgba(0, 0, 0, 0.26);
+  box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.1), 0 0 24px rgba(212, 168, 83, 0.12);
 }
-.form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23b0a8c8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+}
 
-/* ─── Buttons ─── */
+/* CHANGED: 主按钮改为星辰金渐变，hover 上浮 + 外发光；触控区域 ≥ 44px */
 .btn-primary {
   display: block; width: 100%; padding: 15px;
-  background: linear-gradient(135deg, #7c3aed, #a855f7, #7c3aed);
+  background: linear-gradient(135deg, #d4a853, #f0d68a);
   background-size: 200% 200%;
-  border: none; border-radius: 14px;
-  color: #fff; font-size: 18px; font-weight: 600;
-  letter-spacing: 1px;
+  border: none; border-radius: 16px;
+  color: #0B0714; font-size: 16px; font-weight: 600;
+  letter-spacing: 1.2px;
   cursor: pointer;
   position: relative; overflow: hidden;
-  animation: btnShimmer 3s ease infinite;
-  transition: transform 0.2s;
+  min-height: 48px;
+  box-shadow: 0 4px 20px rgba(212, 168, 83, 0.25);
+  transition: all 0.3s ease;
 }
-.btn-primary:active { transform: scale(0.97); }
-.btn-primary:disabled { opacity: 0.5; animation: none; cursor: not-allowed; }
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(212, 168, 83, 0.38);
+  background-position: 100% 100%;
+}
+.btn-primary:active { transform: translateY(0) scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; animation: none; cursor: not-allowed; transform: none; }
 
-@keyframes btnShimmer {
+/* CHANGED: 删除紫色 shimmer，改为更克制的金色微光 */
+@keyframes goldShimmer {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+.btn-primary {
+  animation: goldShimmer 4s ease infinite;
 }
 
 /* Star sparks on button */
 .btn-primary::before {
   content: '';
   position: absolute; inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.15) 0%, transparent 60%),
-              radial-gradient(circle at 70% 30%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.18) 0%, transparent 60%),
+              radial-gradient(circle at 70% 30%, rgba(255,255,255,0.12) 0%, transparent 50%);
   pointer-events: none;
 }
 
-/* ─── Hour Picker Grid ─── */
+/* CHANGED: 次要按钮（时辰、性别）透明底 + 细边框 + hover 金色 */
 .hour-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -123,40 +193,49 @@ body {
 }
 .hour-btn {
   padding: 10px 4px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--purple-border);
-  border-radius: 8px;
-  color: #b0a8c8; font-size: 13px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  color: var(--text-secondary); font-size: 13px;
   cursor: pointer; text-align: center;
-  transition: all 0.25s;
+  transition: all 0.3s ease;
+  min-height: 44px;
+}
+.hour-btn:hover {
+  border-color: rgba(212, 168, 83, 0.35);
+  color: var(--text-primary);
 }
 .hour-btn.active {
-  background: rgba(124,58,237,0.3);
-  border-color: #a855f7;
-  color: #fff;
-  box-shadow: 0 0 12px rgba(168,85,247,0.3);
+  background: rgba(212, 168, 83, 0.12);
+  border-color: var(--gold);
+  color: var(--gold-light);
+  box-shadow: 0 0 16px rgba(212, 168, 83, 0.18);
 }
 
-/* ─── Gender Toggle ─── */
-.gender-toggle { display: flex; gap: 10px; }
+.gender-toggle { display: flex; gap: 12px; }
 .gender-btn {
-  flex: 1; padding: 12px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--purple-border);
-  border-radius: 10px;
-  color: #b0a8c8; font-size: 15px; cursor: pointer;
-  text-align: center; transition: all 0.25s;
+  flex: 1; padding: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  color: var(--text-secondary); font-size: 15px; cursor: pointer;
+  text-align: center; transition: all 0.3s ease;
+  min-height: 44px;
+}
+.gender-btn:hover {
+  border-color: rgba(212, 168, 83, 0.35);
+  color: var(--text-primary);
 }
 .gender-btn.active {
-  background: rgba(124,58,237,0.3);
-  border-color: #a855f7;
-  color: #fff;
-  box-shadow: 0 0 12px rgba(168,85,247,0.3);
+  background: rgba(212, 168, 83, 0.12);
+  border-color: var(--gold);
+  color: var(--gold-light);
+  box-shadow: 0 0 16px rgba(212, 168, 83, 0.18);
 }
 
 /* ─── Collapsible Advanced ─── */
 .advanced-toggle {
-  color: #b0a8c8; font-size: 14px;
+  color: var(--text-secondary); font-size: 14px;
   cursor: pointer; display: flex; align-items: center;
   gap: 6px; padding: 8px 0;
   transition: color 0.3s;
@@ -171,49 +250,58 @@ body {
 }
 .advanced-panel.open { max-height: 300px; margin-bottom: 10px; }
 
-/* ─── Star Chart (结果页) ─── */
+/* CHANGED: 星盘图使用更柔和的间距与悬停效果 */
 .star-chart {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  padding: 8px;
+  gap: 6px;
+  padding: 10px;
 }
 .chart-cell {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--purple-border);
-  border-radius: 8px;
-  padding: 8px 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 10px 4px;
   text-align: center;
   font-size: 12px;
-  min-height: 60px;
+  min-height: 64px;
   display: flex; flex-direction: column;
   justify-content: center; align-items: center;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
-.chart-cell.ming { border-color: var(--gold); box-shadow: 0 0 15px rgba(212,168,83,0.3); background: rgba(212,168,83,0.08); }
-.chart-cell .cell-name { color: #9088a0; font-size: 11px; margin-bottom: 2px; }
-.chart-cell .cell-star { color: #e0dce8; font-size: 13px; font-weight: 600; line-height: 1.3; }
-.chart-cell .cell-star .dim { color: #888; font-size: 11px; font-weight: 400; }
+.chart-cell:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+.chart-cell.ming {
+  border-color: var(--gold);
+  box-shadow: 0 0 18px rgba(212, 168, 83, 0.22);
+  background: rgba(212, 168, 83, 0.07);
+}
+.chart-cell .cell-name { color: var(--text-secondary); font-size: 11px; margin-bottom: 2px; }
+.chart-cell .cell-star { color: var(--text-primary); font-size: 13px; font-weight: 600; line-height: 1.35; }
+.chart-cell .cell-star .dim { color: var(--text-tertiary); font-size: 11px; font-weight: 400; }
 .chart-cell.ming .cell-name { color: var(--gold-light); }
 
-/* ─── Streaming Content ─── */
+/* CHANGED: Tab 内容区使用月光白主文本与金色标题 */
 #tab-content h1, #tab-content h2, #tab-content h3 {
   color: var(--gold-light);
-  margin: 20px 0 10px;
+  margin: 22px 0 12px;
+  font-family: 'Noto Serif SC', serif;
 }
-#tab-content h2 { font-size: 19px; border-bottom: 1px solid rgba(212,168,83,0.2); padding-bottom: 6px; }
-#tab-content h3 { font-size: 16px; }
-#tab-content p { margin: 10px 0; }
-#tab-content ul, #tab-content ol { padding-left: 20px; }
-#tab-content li { margin: 4px 0; }
-#tab-content strong { color: #fff; }
+#tab-content h2 { font-size: 20px; border-bottom: 1px solid rgba(212, 168, 83, 0.2); padding-bottom: 8px; }
+#tab-content h3 { font-size: 17px; }
+#tab-content p { margin: 12px 0; color: var(--text-primary); }
+#tab-content ul, #tab-content ol { padding-left: 22px; }
+#tab-content li { margin: 5px 0; }
+#tab-content strong { color: var(--gold-light); }
 #tab-content blockquote {
   border-left: 3px solid var(--gold);
-  padding-left: 14px; color: #a098c0;
-  margin: 12px 0;
+  padding-left: 16px; color: var(--text-secondary);
+  margin: 14px 0;
 }
-#tab-content code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-#tab-content pre { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; }
+#tab-content code { background: rgba(255, 255, 255, 0.06); padding: 3px 8px; border-radius: 6px; font-size: 13px; }
+#tab-content pre { background: rgba(0, 0, 0, 0.2); padding: 14px; border-radius: 12px; overflow-x: auto; font-size: 13px; border: 1px solid var(--card-border); }
 
 /* ─── Typewriter Cursor ─── */
 .typing-cursor::after {
@@ -226,42 +314,45 @@ body {
 
 /* ─── Loading ─── */
 .loading-spinner {
-  width: 40px; height: 40px;
-  border: 3px solid rgba(212,168,83,0.2);
+  width: 42px; height: 42px;
+  border: 3px solid rgba(212, 168, 83, 0.15);
   border-top-color: var(--gold);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── Tab Navigation ─── */
+/* CHANGED: Tab 导航激活态下划线金色平滑过渡，按钮触控区域 ≥ 44px */
 .tab-btn {
-  flex: 1; padding: 10px 2px;
+  flex: 1; padding: 12px 2px;
   background: transparent;
   border: none; border-bottom: 2px solid transparent;
-  color: #9088a0; font-size: 12px; font-weight: 500;
-  cursor: pointer; transition: all 0.3s;
+  color: var(--text-tertiary); font-size: 12px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
   white-space: nowrap; letter-spacing: 0.3px;
   font-family: inherit;
+  min-height: 44px;
 }
-.tab-btn:hover { color: #c0b8d8; }
+.tab-btn:hover { color: var(--text-primary); }
 .tab-btn.active {
   color: var(--gold-light);
   border-bottom-color: var(--gold);
+  text-shadow: 0 0 12px rgba(212, 168, 83, 0.3);
 }
 
-/* ─── Transition overlay ─── */
+/* CHANGED: 过渡覆盖层调整为金紫色调 */
 #transition-overlay {
   position: fixed; inset: 0; z-index: 100;
-  background: radial-gradient(ellipse at center, rgba(124,58,237,0.15) 0%, rgba(10,10,26,1) 70%);
+  background: radial-gradient(ellipse at center, rgba(212, 168, 83, 0.08) 0%, rgba(11, 7, 20, 0.96) 70%);
   display: none; align-items: center; justify-content: center;
-  flex-direction: column; gap: 16px;
+  flex-direction: column; gap: 18px;
 }
 #transition-overlay.active { display: flex; }
 #transition-overlay .star-burst {
   width: 60px; height: 60px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(240,214,138,0.6), transparent 70%);
+  background: radial-gradient(circle, rgba(240, 214, 138, 0.5), transparent 70%);
   animation: starburst 0.8s ease-out forwards;
 }
 @keyframes starburst {
@@ -269,11 +360,76 @@ body {
   100% { transform: scale(4); opacity: 0; }
 }
 
-/* ─── 免责声明 ─── */
+/* CHANGED: 免责声明使用琉璃灰 */
 .disclaimer {
-  font-size: 12px; color: #6b6080;
+  font-size: 12px; color: var(--text-tertiary);
   text-align: center; margin-top: 24px;
-  line-height: 1.6;
+  line-height: 1.7;
+}
+
+/* CHANGED: 购买弹窗与套餐卡片基础样式 */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(11, 7, 20, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  width: 100%; max-width: 360px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35), 0 0 40px rgba(212, 168, 83, 0.06);
+}
+.modal-card h3 {
+  margin: 0 0 8px;
+  color: var(--gold-light);
+  font-size: 18px;
+  text-align: center;
+}
+.modal-close {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.modal-close:hover {
+  border-color: rgba(212, 168, 83, 0.35);
+  color: var(--text-primary);
+}
+.purchase-pkg {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.purchase-pkg:hover {
+  border-color: rgba(212, 168, 83, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+}
+.purchase-pkg.hot {
+  border-color: var(--gold);
+}
+
+/* CHANGED: 响应式适配 */
+@media (max-width: 480px) {
+  .page { padding: 22px 14px 40px; }
+  .card { padding: 20px 16px !important; }
+  .form-group { margin-bottom: 18px; }
+  #tab-content { font-size: 14px; }
+  #tab-content h2 { font-size: 18px; }
 }
 </style>
 </head>
@@ -285,24 +441,24 @@ body {
 <!-- 过渡动画覆盖层 -->
 <div id="transition-overlay">
   <div class="star-burst"></div>
-  <p style="color:var(--gold-light);font-size:16px;letter-spacing:2px;">命盘开启中...</p>
+  <p style="color:var(--gold-light);font-size:16px;letter-spacing:2px;font-family:'Noto Serif SC',serif;">命盘开启中...</p>
 </div>
 
 <!-- ═══════════ 首页 ═══════════ -->
 <div id="page-home" class="page active">
-  <!-- 标题区 -->
-  <div style="text-align:center;margin:30px 0 24px;">
-    <div style="font-size:36px;margin-bottom:6px;">🪐</div>
-    <h1 style="font-size:26px;font-weight:700;margin:0;" class="gold-text">AI 紫微斗数</h1>
-    <p style="font-size:14px;color:#9088a0;margin:8px 0 0;letter-spacing:1px;">探索你的生命蓝图</p>
+  <!-- CHANGED: 标题区增加入场动画与字号层次 -->
+  <div style="text-align:center;margin:36px 0 28px;" class="fade-in-up">
+    <div style="font-size:36px;margin-bottom:6px;opacity:0.9;">🪐</div>
+    <h1 style="font-size:clamp(28px,7vw,36px);font-weight:700;margin:0;line-height:1.25;" class="gold-text">AI 紫微斗数</h1>
+    <p style="font-size:15px;color:var(--text-secondary);margin:12px 0 0;letter-spacing:1.5px;">探索你的生命蓝图</p>
   </div>
 
-  <!-- 表单卡片 -->
-  <div class="card" style="padding:24px 20px;">
+  <!-- CHANGED: 表单卡片应用新毛玻璃材质与入场动画 -->
+  <div class="card fade-in-up delay-1" style="padding:28px 22px;">
     <!-- 日期：年月日三下拉 -->
     <div class="form-group">
       <label class="form-label">📅 公历出生日期</label>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:10px;">
         <select id="birthYear" class="form-select" style="flex:2;" onchange="updateDays()"></select>
         <select id="birthMonth" class="form-select" style="flex:1;" onchange="updateDays()"></select>
         <select id="birthDay" class="form-select" style="flex:1;"></select>
@@ -313,7 +469,7 @@ body {
     <div class="form-group">
       <label class="form-label">⏰ 出生时间</label>
       <input type="time" id="birthTime" class="form-input" value="14:30" style="color-scheme:dark;">
-      <p style="font-size:11px;color:#6b6080;margin-top:4px;" id="timeHint">输入具体时间（如 14:30），系统将自动换算为时辰</p>
+      <p style="font-size:12px;color:var(--text-tertiary);margin-top:5px;" id="timeHint">输入具体时间（如 14:30），系统将自动换算为时辰</p>
     </div>
 
     <!-- 性别 -->
@@ -330,54 +486,56 @@ body {
       <label class="form-label">🏙️ 出生城市（真太阳时校正）</label>
       <input type="text" id="city" class="form-input" placeholder="如：北京、上海、成都...（留空=北京时间）" list="cityList" autocomplete="off">
       <datalist id="cityList"></datalist>
-      <p style="font-size:11px;color:#6b6080;margin-top:4px;">根据城市经度自动校正真太阳时，确保时辰精准</p>
+      <p style="font-size:12px;color:var(--text-tertiary);margin-top:5px;">根据城市经度自动校正真太阳时，确保时辰精准</p>
     </div>
 
-    <!-- 提交按钮 -->
-    <button class="btn-primary" onclick="submitForm()" style="margin-top:20px;">
+    <!-- CHANGED: 提交按钮应用金色渐变与 hover 发光 -->
+    <button class="btn-primary" onclick="submitForm()" style="margin-top:24px;">
       ✨ 开启命盘
     </button>
   </div>
 
-  <!-- 底部 -->
-  <p style="font-size:12px;color:#504878;margin-top:20px;text-align:center;">
-    基于 iztro 紫微斗数引擎 + DeepSeek AI 解读<br>
-    仅供娱乐与自我探索参考
-  </p>
-  <p id="quota-badge" style="font-size:12px;color:#6b6080;text-align:center;margin-top:6px;">🎫 今日剩余：— / 5 次</p>
+  <!-- CHANGED: 底部信息区使用新文本色与入场动画 -->
+  <div style="text-align:center;" class="fade-in-up delay-2">
+    <p style="font-size:12px;color:var(--text-tertiary);margin-top:24px;line-height:1.7;">
+      基于 iztro 紫微斗数引擎 + DeepSeek AI 解读<br>
+      仅供娱乐与自我探索参考
+    </p>
+    <p id="quota-badge" style="font-size:12px;color:var(--text-tertiary);text-align:center;margin-top:8px;">🎫 今日剩余：— / 5 次</p>
+  </div>
 
-  <!-- 🔮 深度解读专区 -->
-  <div style="width:100%;max-width:420px;margin-top:24px;">
-    <h3 style="font-size:16px;color:var(--gold-light);text-align:center;margin-bottom:14px;">🔮 深度解读专区 <span style="font-size:11px;color:#9088a0;font-weight:400;">· 付费专题</span></h3>
-    <div id="premium-cards" style="display:flex;flex-direction:column;gap:10px;">
+  <!-- CHANGED: 深度解读专区卡片应用新材质与交错动画 -->
+  <div style="width:100%;max-width:420px;margin-top:28px;" class="fade-in-up delay-3">
+    <h3 style="font-size:16px;color:var(--gold-light);text-align:center;margin-bottom:14px;font-family:'Noto Serif SC',serif;">🔮 深度解读专区 <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;font-family:'Noto Sans SC',sans-serif;">· 付费专题</span></h3>
+    <div id="premium-cards" style="display:flex;flex-direction:column;gap:12px;">
       <!-- 十年大限 -->
-      <div class="card premium-card" style="border:1px solid rgba(124,58,237,0.5);background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(124,58,237,0.02));">
-        <div style="padding:14px 16px;">
+      <div class="card premium-card" style="border:1px solid rgba(124,58,237,0.4);background:linear-gradient(135deg,rgba(124,58,237,0.06),rgba(124,58,237,0.02));">
+        <div style="padding:16px;">
           <div style="display:flex;justify-content:space-between;align-items:start;">
-            <div><span style="font-size:16px;font-weight:600;color:#e0dce8;">📜 十年大限</span><p style="font-size:13px;color:#9088a0;margin:4px 0 0;">看清未来40年人生节奏，把握每个关键转折</p></div>
+            <div><span style="font-size:16px;font-weight:600;color:var(--text-primary);">📜 十年大限</span><p style="font-size:13px;color:var(--text-secondary);margin:5px 0 0;">看清未来40年人生节奏，把握每个关键转折</p></div>
             <span style="font-size:18px;font-weight:700;color:var(--gold-light);white-space:nowrap;">¥29.9</span>
           </div>
-          <button class="btn-primary" style="margin-top:12px;font-size:14px;padding:10px;animation:none;" onclick="startPremium('decade')">✨ 立即解锁（消耗3次）</button>
+          <button class="btn-primary" style="margin-top:14px;font-size:14px;padding:11px;animation:none;" onclick="startPremium('decade')">✨ 立即解锁（消耗3次）</button>
         </div>
       </div>
       <!-- 双人合盘 -->
-      <div class="card premium-card" style="border:1px solid rgba(212,168,83,0.5);background:linear-gradient(135deg,rgba(212,168,83,0.08),rgba(212,168,83,0.02));">
-        <div style="padding:14px 16px;">
+      <div class="card premium-card" style="border:1px solid rgba(212,168,83,0.4);background:linear-gradient(135deg,rgba(212,168,83,0.06),rgba(212,168,83,0.02));">
+        <div style="padding:16px;">
           <div style="display:flex;justify-content:space-between;align-items:start;">
-            <div><span style="font-size:16px;font-weight:600;color:#e0dce8;">💞 双人合盘</span><p style="font-size:13px;color:#9088a0;margin:4px 0 0;">洞悉你们之间的星辰密码，找到最舒服的相处方式</p></div>
+            <div><span style="font-size:16px;font-weight:600;color:var(--text-primary);">💞 双人合盘</span><p style="font-size:13px;color:var(--text-secondary);margin:5px 0 0;">洞悉你们之间的星辰密码，找到最舒服的相处方式</p></div>
             <span style="font-size:18px;font-weight:700;color:var(--gold-light);white-space:nowrap;">¥39.9</span>
           </div>
-          <button class="btn-primary" style="margin-top:12px;font-size:14px;padding:10px;animation:none;" onclick="startPremium('synastry')">✨ 立即解锁（消耗4次）</button>
+          <button class="btn-primary" style="margin-top:14px;font-size:14px;padding:11px;animation:none;" onclick="startPremium('synastry')">✨ 立即解锁（消耗4次）</button>
         </div>
       </div>
       <!-- 流月精批 -->
-      <div class="card premium-card" style="border:1px solid rgba(59,130,246,0.5);background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(59,130,246,0.02));">
-        <div style="padding:14px 16px;">
+      <div class="card premium-card" style="border:1px solid rgba(59,130,246,0.4);background:linear-gradient(135deg,rgba(59,130,246,0.06),rgba(59,130,246,0.02));">
+        <div style="padding:16px;">
           <div style="display:flex;justify-content:space-between;align-items:start;">
-            <div><span style="font-size:16px;font-weight:600;color:#e0dce8;">📅 流月精批</span><p style="font-size:13px;color:#9088a0;margin:4px 0 0;">未来365天逐月导航，不错过每一个高光时刻</p></div>
+            <div><span style="font-size:16px;font-weight:600;color:var(--text-primary);">📅 流月精批</span><p style="font-size:13px;color:var(--text-secondary);margin:5px 0 0;">未来365天逐月导航，不错过每一个高光时刻</p></div>
             <span style="font-size:18px;font-weight:700;color:var(--gold-light);white-space:nowrap;">¥19.9</span>
           </div>
-          <button class="btn-primary" style="margin-top:12px;font-size:14px;padding:10px;animation:none;" onclick="startPremium('monthly')">✨ 立即解锁（消耗2次）</button>
+          <button class="btn-primary" style="margin-top:14px;font-size:14px;padding:11px;animation:none;" onclick="startPremium('monthly')">✨ 立即解锁（消耗2次）</button>
         </div>
       </div>
     </div>
@@ -385,29 +543,29 @@ body {
 </div>
 
 <!-- ═══════════ 结果页 ═══════════ -->
-<div id="page-result" class="page" style="padding-top:10px;">
-  <!-- 返回按钮 -->
-  <div style="width:100%;max-width:420px;display:flex;align-items:center;margin-bottom:12px;">
-    <button onclick="goHome()" style="background:none;border:none;color:#9088a0;font-size:24px;cursor:pointer;padding:4px 8px;">←</button>
-    <span style="font-size:14px;color:#9088a0;">命盘解读</span>
+<div id="page-result" class="page" style="padding-top:16px;">
+  <!-- CHANGED: 返回按钮增加 hover 反馈 -->
+  <div style="width:100%;max-width:420px;display:flex;align-items:center;margin-bottom:16px;" class="fade-in-up">
+    <button onclick="goHome()" style="background:none;border:none;color:var(--text-secondary);font-size:24px;cursor:pointer;padding:6px 10px;border-radius:10px;transition:all 0.3s ease;">←</button>
+    <span style="font-size:14px;color:var(--text-secondary);">命盘解读</span>
     <span id="premium-badge" style="display:none;font-size:13px;color:var(--gold-light);margin-left:8px;padding:2px 10px;border:1px solid var(--gold);border-radius:10px;background:rgba(212,168,83,0.1);">🔮 专题</span>
   </div>
 
-  <!-- 星盘图卡片 -->
-  <div class="card" style="padding:16px 12px;margin-bottom:16px;">
+  <!-- CHANGED: 星盘图卡片应用新材质与入场动画 -->
+  <div class="card fade-in-up delay-1" style="padding:16px 12px;margin-bottom:16px;">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;">
       <span style="font-size:18px;">🔮</span>
-      <span style="font-size:15px;font-weight:600;color:var(--gold-light);">星盘总览</span>
-      <span id="chart-basic-info" style="font-size:12px;color:#9088a0;margin-left:auto;"></span>
+      <span style="font-size:15px;font-weight:600;color:var(--gold-light);font-family:'Noto Serif SC',serif;">星盘总览</span>
+      <span id="chart-basic-info" style="font-size:12px;color:var(--text-tertiary);margin-left:auto;"></span>
     </div>
     <div class="star-chart" id="starChart"></div>
-    <p style="font-size:11px;color:#6b6080;text-align:center;margin:8px 0 0;">
+    <p style="font-size:11px;color:var(--text-tertiary);text-align:center;margin:8px 0 0;">
       ✦ 金色边框 = 命宫  ·  星号标记 = 身宫 ✦
     </p>
   </div>
 
-  <!-- Tab 导航栏 -->
-  <div class="card" style="padding:4px;margin-bottom:12px;overflow:hidden;">
+  <!-- CHANGED: Tab 导航栏使用新毛玻璃卡片 -->
+  <div class="card fade-in-up delay-2" style="padding:4px;margin-bottom:14px;overflow:hidden;">
     <div id="tab-nav" style="display:flex;gap:0;">
       <button class="tab-btn active" data-module="overview" onclick="switchTab('overview')">🏮 概览</button>
       <button class="tab-btn" data-module="character" onclick="switchTab('character')">🎭 性格</button>
@@ -417,29 +575,30 @@ body {
     </div>
   </div>
 
-  <!-- Tab 内容区 -->
-  <div id="tab-content" style="width:100%;max-width:420px;line-height:1.8;font-size:15px;color:#d8d4e8;min-height:120px;">
+  <!-- CHANGED: Tab 内容区材质与排版优化 -->
+  <div id="tab-content" class="card fade-in-up delay-3" style="padding:20px 18px;margin-bottom:16px;line-height:1.75;font-size:15px;color:var(--text-primary);min-height:120px;">
     <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;">
       <div class="loading-spinner"></div>
-      <p style="color:#9088a0;font-size:14px;">AI 正在推演你的命盘...</p>
+      <p style="color:var(--text-secondary);font-size:14px;">AI 正在推演你的命盘...</p>
     </div>
   </div>
 
-  <!-- 免责声明 -->
-  <p class="disclaimer" id="reading-disclaimer" style="display:none;">
+  <!-- CHANGED: 免责声明 -->
+  <p class="disclaimer fade-in-up delay-4" id="reading-disclaimer" style="display:none;">
     ⚠️ 免责声明：本内容由 AI 基于传统国学文化生成，仅供娱乐与自我探索参考，不构成任何人生决策建议。命盘如镜，映照倾向而非注定；命运如舟，舵在您自己手中。
   </p>
 
-  <!-- 重新测算 -->
-  <button class="btn-primary" onclick="goHome()" style="margin-top:24px;max-width:420px;">
+  <!-- CHANGED: 重新测算按钮 -->
+  <button class="btn-primary fade-in-up delay-4" onclick="goHome()" style="margin-top:24px;max-width:420px;">
     🔄 重新测算
   </button>
 </div>
 
+<!-- CHANGED: 购买弹窗基础结构保留，样式由 CSS 接管 -->
 <div class="modal-overlay" id="purchase-modal">
   <div class="modal-card" style="padding:24px 20px;">
     <h3>✨ 解锁无限探索</h3>
-    <p id="purchase-subtitle" style="font-size:13px;">今日免费额度已用完 —— 但星辰不会等待</p>
+    <p id="purchase-subtitle" style="font-size:13px;color:var(--text-secondary);text-align:center;">今日免费额度已用完 —— 但星辰不会等待</p>
     <div id="purchase-packages" style="margin:16px 0;"></div>
     <button class="modal-close" onclick="document.getElementById('purchase-modal').classList.remove('active')">暂不购买，明天再来</button>
   </div>
@@ -597,7 +756,7 @@ function goHome() {
   document.getElementById('tab-content').innerHTML = `
     <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;">
       <div class="loading-spinner"></div>
-      <p style="color:#9088a0;font-size:14px;">AI 正在推演你的命盘...</p>
+      <p style="color:var(--text-secondary);font-size:14px;">AI 正在推演你的命盘...</p>
     </div>
   `;
   document.getElementById('reading-disclaimer').style.display = 'none';
@@ -622,7 +781,7 @@ async function submitForm() {
     document.getElementById('tab-content').innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;">
         <div class="loading-spinner"></div>
-        <p style="color:#9088a0;font-size:14px;">AI 正在推演你的命盘...</p>
+        <p style="color:var(--text-secondary);font-size:14px;">AI 正在推演你的命盘...</p>
       </div>
     `;
     document.getElementById('reading-disclaimer').style.display = 'none';
@@ -666,8 +825,8 @@ function renderStarChart(data) {
         let cls = '';
         if (s.brightness === '陷' || s.brightness === '不') cls = 'dim';
         let txt = s.name;
-        if (s.brightness) txt += `<br><span style="font-size:10px;color:#9088a0;">${s.brightness}</span>`;
-        if (s.mutagen) txt += `<br><span style="font-size:10px;color:#f0d68a;">化${s.mutagen}</span>`;
+        if (s.brightness) txt += `<br><span style="font-size:10px;color:var(--text-tertiary);">${s.brightness}</span>`;
+        if (s.mutagen) txt += `<br><span style="font-size:10px;color:var(--gold-light);">化${s.mutagen}</span>`;
         return `<span class="${cls}">${txt}</span>`;
       });
       starDiv.innerHTML = stars.join('<br>');
@@ -715,7 +874,7 @@ async function switchTab(module) {
   content.innerHTML = `
     <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;">
       <div class="loading-spinner"></div>
-      <p style="color:#9088a0;font-size:14px;">正在解读${moduleNames[module]}...</p>
+      <p style="color:var(--text-secondary);font-size:14px;">正在解读${moduleNames[module]}...</p>
     </div>
   `;
 
@@ -734,7 +893,7 @@ async function switchTab(module) {
       try { err = JSON.parse(errText); } catch { err = { error: '未知错误' }; }
       if (response.status === 429) {
         const canBuy = err.canPurchase !== false;
-        content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#ff6b6b;">🚫 ${err.error || '今日额度已用完'}</p>${canBuy ? '<button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.2);border:1px solid var(--gold);border-radius:10px;color:var(--gold-light);font-size:14px;cursor:pointer;">💎 立即购买次数</button>' : ''}</div>`;
+        content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#ff6b6b;">🚫 ${err.error || '今日额度已用完'}</p>${canBuy ? '<button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.12);border:1px solid var(--gold);border-radius:12px;color:var(--gold-light);font-size:14px;cursor:pointer;transition:all 0.3s ease;">💎 立即购买次数</button>' : ''}</div>`;
         refreshQuota();
       } else {
         content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ ${err.error || errText}</p>`;
@@ -951,7 +1110,7 @@ async function doAdvancedStream(module, extraData) {
   const content = document.getElementById('advanced-content');
   content.style.display = 'block';
   const labels = { daxian: '十年大限深度推演', liuyue: '流月精批', hepan: '双人合盘解读' };
-  content.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 0;"><div class="loading-spinner"></div><p style="color:#9088a0;font-size:14px;">正在推演${labels[module]}...</p></div>`;
+  content.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 0;"><div class="loading-spinner"></div><p style="color:var(--text-secondary);font-size:14px;">正在推演${labels[module]}...</p></div>`;
 
   const urls = { daxian: '/api/advanced/daxian', liuyue: '/api/advanced/liuyue', hepan: '/api/advanced/hepan' };
   let body = { ...submitParams };
@@ -996,21 +1155,17 @@ const PURCHASE_PACKAGES = [
 function showPurchaseModal() {
   const pkgDiv = document.getElementById('purchase-packages');
   pkgDiv.innerHTML = PURCHASE_PACKAGES.map((p, i) => `
-    <div class="purchase-pkg ${p.hot ? 'hot' : ''}" onclick="selectPackage('${p.type}', this)" style="
-      background: rgba(255,255,255,0.04); border: 1px solid ${p.hot ? 'var(--gold)' : 'var(--purple-border)'};
-      border-radius: 12px; padding: 14px; margin-bottom: 10px; cursor: pointer;
-      text-align: left; transition: all 0.3s; position: relative;
-    ">
-      ${p.hot ? '<span style="position:absolute;top:-8px;right:12px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;font-size:11px;padding:2px 10px;border-radius:10px;">🔥 最受欢迎</span>' : ''}
+    <div class="purchase-pkg ${p.hot ? 'hot' : ''}" onclick="selectPackage('${p.type}', this)">
+      ${p.hot ? '<span style="position:absolute;top:-8px;right:12px;background:linear-gradient(135deg,#d4a853,#f0d68a);color:#0B0714;font-size:11px;font-weight:600;padding:2px 10px;border-radius:10px;">🔥 最受欢迎</span>' : ''}
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <span style="font-size:16px;font-weight:600;color:#e0dce8;">${p.type}</span>
-          <span style="font-size:12px;color:#9088a0;margin-left:8px;">${p.desc}</span>
+          <span style="font-size:16px;font-weight:600;color:var(--text-primary);">${p.type}</span>
+          <span style="font-size:12px;color:var(--text-secondary);margin-left:8px;">${p.desc}</span>
         </div>
         <span style="font-size:20px;font-weight:700;color:var(--gold-light);">¥${p.price}</span>
       </div>
-      <div id="pkg-action-${i}" style="margin-top:8px;display:none;">
-        <button onclick="event.stopPropagation();doPurchase('${p.type}')" style="width:100%;padding:10px;background:linear-gradient(135deg,#d4a853,#f0d68a);border:none;border-radius:8px;color:#0a0a1a;font-weight:600;cursor:pointer;">✨ 确认购买 ¥${p.price}</button>
+      <div id="pkg-action-${i}" style="margin-top:10px;display:none;">
+        <button onclick="event.stopPropagation();doPurchase('${p.type}')" class="btn-primary" style="width:100%;padding:10px;font-size:14px;animation:none;">✨ 确认购买 ¥${p.price}</button>
       </div>
     </div>
   `).join('');
@@ -1023,7 +1178,7 @@ function selectPackage(type, el) {
   document.querySelectorAll('[id^="pkg-action-"]').forEach(el => el.style.display = 'none');
   const actionEl = el.querySelector('[id^="pkg-action-"]');
   if (actionEl) actionEl.style.display = 'block';
-  document.querySelectorAll('.purchase-pkg').forEach(p => p.style.borderColor = 'var(--purple-border)');
+  document.querySelectorAll('.purchase-pkg').forEach(p => p.style.borderColor = 'var(--card-border)');
   el.style.borderColor = 'var(--gold)';
 }
 
@@ -1053,7 +1208,7 @@ async function doPurchase(productType) {
       document.getElementById('purchase-modal').classList.remove('active');
       refreshQuota();
       const toast = document.createElement('div');
-      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:300;background:rgba(20,15,40,0.95);border:1px solid var(--gold);border-radius:14px;padding:16px 24px;text-align:center;color:var(--gold-light);font-size:15px;box-shadow:0 0 30px rgba(212,168,83,0.3);';
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:300;background:rgba(11,7,20,0.95);border:1px solid var(--gold);border-radius:16px;padding:16px 24px;text-align:center;color:var(--gold-light);font-size:15px;box-shadow:0 0 30px rgba(212,168,83,0.25);';
       toast.innerHTML = `✅ 购买成功！<br>💎 +${result.count} 次付费额度已到账`;
       document.body.appendChild(toast);
       setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.remove(), 500); }, 2000);
@@ -1122,7 +1277,7 @@ async function doPremiumStream(readingType, extraData) {
 
     const content = document.getElementById('tab-content');
     content.style.display = 'block';
-    content.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:60px 0;"><div class="loading-spinner"></div><p style="color:#9088a0;font-size:14px;">正在推演${PREMIUM_META[readingType].label}...</p></div>`;
+    content.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:60px 0;"><div class="loading-spinner"></div><p style="color:var(--text-secondary);font-size:14px;">正在推演${PREMIUM_META[readingType].label}...</p></div>`;
 
     const body = {
       solar_date: submitParams?.solar_date || '1990-06-15',
@@ -1158,7 +1313,7 @@ async function doPremiumStream(readingType, extraData) {
             else if (m.type === 'done') { content.classList.remove('typing-cursor'); content.innerHTML = marked.parse(fullText); document.getElementById('reading-disclaimer').style.display = 'block'; refreshQuota(); }
             else if (m.type === 'error') {
               if (m.code === 'INSUFFICIENT_PAID') {
-                content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#ff6b6b;">🚫 ${m.message}</p><button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.2);border:1px solid var(--gold);border-radius:10px;color:var(--gold-light);font-size:14px;cursor:pointer;">💎 立即购买次数</button></div>`;
+                content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#ff6b6b;">🚫 ${m.message}</p><button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.12);border:1px solid var(--gold);border-radius:12px;color:var(--gold-light);font-size:14px;cursor:pointer;transition:all 0.3s ease;">💎 立即购买次数</button></div>`;
               } else {
                 content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ '+m.message+'</p>';
               }
