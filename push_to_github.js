@@ -47,6 +47,7 @@ const FILES = [
   'knowledge/system_prompt.md',
   'knowledge/system_prompt_premium.md',
   'AGENTS.md',
+  'render.yaml',
   'payment.js',
   'push_to_github.js',
   'wechat-app/app.json',
