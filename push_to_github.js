@@ -40,6 +40,8 @@ const FILES = [
   'knowledge/stars.json',
   'knowledge/sihua.json',
   'knowledge/patterns.json',
+  'knowledge/daxian.json',
+  'knowledge/sihua_advanced.json',
   'knowledge/system_prompt.md',
   'AGENTS.md',
   'push_to_github.js',
