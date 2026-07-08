@@ -864,6 +864,47 @@ app.post('/api/advanced/hepan', async (req, res) => {
 // 付费 API 路由
 // ============================================================
 
+// ============================================================
+// 小程序专用：同步解读接口（非流式，返回完整 JSON）
+// ============================================================
+app.post('/api/reading/sync', async (req, res) => {
+  try {
+    const { solar_date, time, city, gender, birthDate, hourIdx, module } = req.body;
+    if (!consumeQuota(req)) {
+      return res.status(429).json({ error: '今日免费额度已用完', canPurchase: true, quota: getQuota(req) });
+    }
+
+    let adjustedDate, shichenIdx;
+    if (solar_date && time !== undefined) {
+      const result = timeToShichen(solar_date, time, city || null);
+      adjustedDate = result.adjustedDate; shichenIdx = result.hourIdx;
+    } else if (birthDate !== undefined && hourIdx != null) {
+      adjustedDate = birthDate; shichenIdx = parseInt(hourIdx);
+    } else {
+      return res.status(400).json({ error: '缺少必填参数' });
+    }
+
+    const d = new Date(adjustedDate);
+    const dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    const a = astro.bySolar(dateStr, shichenIdx, gender || '男', true, 'zh-CN');
+    const data = cleanData(a, gender || '男', shichenIdx);
+    const knowledge = retrieveKnowledge(data);
+    const { systemPrompt, userMessage } = assemblePrompt(data, knowledge, module || 'overview');
+
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: '服务器未配置 DEEPSEEK_API_KEY' });
+
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }], stream: false, temperature: 0.7, max_tokens: 4096 })
+    });
+    const result = await response.json();
+    res.json({ success: true, content: result.choices?.[0]?.message?.content || '', data, correction: { adjustedDate, shichenIdx } });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // 专题价格配置：每个专题消耗付费次数
 const PREMIUM_COST = { decade: 3, synastry: 4, monthly: 2 };
 
