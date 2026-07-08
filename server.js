@@ -12,32 +12,42 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// 付费次数包模块
+const payment = require('./payment');
+
 // ============================================================
-// 每日调用限流（内存计数，每日 5 次，午夜重置）
+// 每日调用限流（免费 5 次/天 + 付费次数包）
 // ============================================================
 const DAILY_LIMIT = 5;
 let quota = { date: '', used: 0 };
 
-function getQuota() {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  if (quota.date !== today) {
-    quota = { date: today, used: 0 };
-    console.log(`  📅 新的一天，配额重置为 ${DAILY_LIMIT} 次`);
-  }
-  return { date: quota.date, used: quota.used, remaining: Math.max(0, DAILY_LIMIT - quota.used), limit: DAILY_LIMIT };
+function getQuota(req) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (quota.date !== today) { quota = { date: today, used: 0 }; }
+  const clientId = payment.getClientId(req);
+  const paid = payment.getPaidQuota(clientId);
+  return {
+    date: quota.date, used: quota.used,
+    freeLimit: DAILY_LIMIT, freeRemaining: Math.max(0, DAILY_LIMIT - quota.used),
+    paidRemaining: paid.paidRemaining || 0,
+    totalRemaining: Math.max(0, DAILY_LIMIT - quota.used) + (paid.paidRemaining || 0),
+  };
 }
 
-function consumeQuota() {
-  const q = getQuota();
-  if (q.remaining <= 0) return false;
-  quota.used++;
-  console.log(`  🎫 已用 ${quota.used}/${DAILY_LIMIT} 次，剩余 ${DAILY_LIMIT - quota.used} 次`);
-  return true;
+/** 消耗配额：优先免费，再消耗付费 */
+function consumeQuota(req) {
+  const q = getQuota(req);
+  if (q.totalRemaining <= 0) return false;
+  // 优先消耗免费
+  if (q.freeRemaining > 0) { quota.used++; return true; }
+  // 消耗付费
+  if (q.paidRemaining > 0) { return payment.consumePaidQuota(payment.getClientId(req)); }
+  return false;
 }
 
 // GET /api/quota — 前端查询剩余次数
-app.get('/api/quota', (_req, res) => {
-  res.json(getQuota());
+app.get('/api/quota', (req, res) => {
+  res.json(getQuota(req));
 });
 
 // ============================================================
@@ -422,8 +432,13 @@ function assemblePrompt(data, knowledge, module) {
 app.post('/api/chart', (req, res) => {
   try {
     // 限流检查
-    if (!consumeQuota()) {
-      return res.status(429).json({ error: '今日免费额度已用完（每日5次），请明天再来探索命盘 🌙', quota: getQuota() });
+    if (!consumeQuota(req)) {
+      const q = getQuota(req);
+      return res.status(429).json({
+        error: '今日免费额度已用完，请明天再来或购买付费次数包继续探索命盘 🌙',
+        quota: q,
+        canPurchase: true,
+      });
     }
     const { solar_date, time, city, gender, birthDate, hourIdx } = req.body;
 
@@ -482,9 +497,10 @@ app.post('/api/chart', (req, res) => {
 app.post('/api/reading', async (req, res) => {
   try {
     // 限流检查
-    if (!consumeQuota()) {
+    if (!consumeQuota(req)) {
+      const q = getQuota(req);
       res.writeHead(429, { 'Content-Type': 'text/event-stream' });
-      res.write(`data: ${JSON.stringify({ type: 'error', message: '今日免费额度已用完（每日5次），请明天再来探索命盘 🌙', quota: getQuota() })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: '今日免费额度已用完，请明天再来或购买付费次数包继续探索命盘 🌙', quota: q, canPurchase: true })}\n\n`);
       return res.end();
     }
     const { solar_date, time, city, gender, birthDate, hourIdx, module } = req.body;
@@ -843,6 +859,14 @@ app.post('/api/advanced/hepan', async (req, res) => {
     await deepseekStream(res, sysPrompt, prompt);
   });
 });
+
+// ============================================================
+// 付费 API 路由
+// ============================================================
+app.post('/api/pay/order', payment.createOrder);
+app.get('/api/pay/order/:orderId', payment.queryOrder);
+app.post('/api/pay/callback', payment.paymentCallback);
+app.get('/api/products', payment.getProducts);
 
 // ============================================================
 // 启动
