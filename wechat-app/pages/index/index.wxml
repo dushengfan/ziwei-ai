@@ -1,5 +1,108 @@
-<!--pages/index/index.wxml-->
-<web-view src="https://ziwei-ai-vlqb.onrender.com"
-          bindload="onWebLoad"
-          binderror="onWebError">
-</web-view>
+<!-- 紫微斗数 AI 小程序 - 首页 -->
+<scroll-view scroll-y class="page" wx:if="{{!showResult}}">
+  <!-- 标题区 -->
+  <view class="hero">
+    <text class="hero-icon">🪐</text>
+    <text class="hero-title">AI 紫微斗数</text>
+    <text class="hero-subtitle">探索你的生命蓝图</text>
+  </view>
+
+  <!-- 表单卡片 -->
+  <view class="card form-card">
+    <!-- 出生日期 -->
+    <view class="form-group">
+      <text class="form-label">📅 公历出生日期</text>
+      <picker mode="date" value="{{birthDate}}" start="1940-01-01" end="{{today}}" bindchange="onDateChange">
+        <view class="form-picker">{{birthDate || '请选择出生日期'}}</view>
+      </picker>
+    </view>
+
+    <!-- 出生时间 -->
+    <view class="form-group">
+      <text class="form-label">⏰ 出生时间</text>
+      <picker mode="time" value="{{birthTime}}" bindchange="onTimeChange">
+        <view class="form-picker">{{birthTime || '请选择时间'}}</view>
+      </picker>
+    </view>
+
+    <!-- 性别 -->
+    <view class="form-group">
+      <text class="form-label">👤 性别</text>
+      <view class="gender-row">
+        <view class="gender-btn {{gender==='男'?'active':''}}" bindtap="onGenderTap" data-g="男">♂ 男</view>
+        <view class="gender-btn {{gender==='女'?'active':''}}" bindtap="onGenderTap" data-g="女">♀ 女</view>
+      </view>
+    </view>
+
+    <!-- 城市 -->
+    <view class="form-group">
+      <text class="form-label">🏙️ 出生城市（真太阳时校正）</text>
+      <input class="form-input" placeholder="如：北京、上海（留空=北京时间）" value="{{city}}" bindinput="onCityInput" />
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="btn-primary" bindtap="submitForm">
+      <text>✨ 开启命盘</text>
+    </view>
+  </view>
+
+  <!-- 配额显示 -->
+  <view class="quota-bar">
+    <text wx:if="{{totalQuota>0}}" class="quota-text">🎫 今日剩余：{{totalQuota}} 次</text>
+    <text wx:if="{{paidQuota>0}}" class="quota-text">💎 付费次数：{{paidQuota}} 次</text>
+    <text wx:if="{{totalQuota<=0}}" class="quota-text exhausted">🚫 今日额度已用完</text>
+  </view>
+
+  <!-- 底部说明 -->
+  <view class="footer-text">
+    <text>基于 iztro 紫微斗数引擎 + DeepSeek AI 解读</text>
+    <text>仅供娱乐与自我探索参考</text>
+  </view>
+</scroll-view>
+
+<!-- ═══════════ 结果页 ═══════════ -->
+<scroll-view scroll-y class="page result-page" wx:if="{{showResult}}">
+  <!-- 返回按钮 -->
+  <view class="back-bar">
+    <text class="back-btn" bindtap="goBack">←</text>
+    <text class="back-title">命盘解读</text>
+  </view>
+
+  <!-- 星盘图 -->
+  <view class="card chart-card" wx:if="{{chartData}}">
+    <text class="card-title">🔮 星盘总览</text>
+    <text class="card-info">{{chartBasicInfo}}</text>
+    <view class="star-chart">
+      <view class="chart-cell {{item.name==='命宫'?'ming':''}}" wx:for="{{palaceGrid}}" wx:key="name">
+        <text class="cell-name">{{item.name}}{{item.isBody ? ' ★' : ''}}</text>
+        <text class="cell-star">{{item.stars || '空宫'}}</text>
+      </view>
+    </view>
+    <text class="chart-hint">✦ 金色边框 = 命宫  ·  星号标记 = 身宫 ✦</text>
+  </view>
+
+  <!-- Tab 栏 -->
+  <view class="card tab-card">
+    <view class="tab {{activeTab==='overview'?'active':''}}" bindtap="switchTab" data-tab="overview">🏮 概览</view>
+    <view class="tab {{activeTab==='character'?'active':''}}" bindtap="switchTab" data-tab="character">🎭 性格</view>
+    <view class="tab {{activeTab==='career'?'active':''}}" bindtap="switchTab" data-tab="career">💼 事业</view>
+    <view class="tab {{activeTab==='love'?'active':''}}" bindtap="switchTab" data-tab="love">💕 感情</view>
+    <view class="tab {{activeTab==='year'?'active':''}}" bindtap="switchTab" data-tab="year">🌊 流年</view>
+  </view>
+
+  <!-- 内容区 -->
+  <view class="card reading-card">
+    <view wx:if="{{loading}}" class="loading-area">
+      <view class="spinner"></view>
+      <text class="loading-text">正在解读{{moduleNames[activeTab]}}...</text>
+    </view>
+    <rich-text wx:else nodes="{{readingContent}}" class="reading-richtext"></rich-text>
+  </view>
+
+  <!-- 底部：重新测算 + 按钮 -->
+  <view class="btn-primary" bindtap="goBack" style="margin-top:20rpx;">
+    <text>🔄 重新测算</text>
+  </view>
+
+  <text class="disclaimer">⚠️ 免责声明：本内容由 AI 基于传统国学文化生成，仅供娱乐与自我探索参考，命运掌握在您自己手中。</text>
+</scroll-view>
