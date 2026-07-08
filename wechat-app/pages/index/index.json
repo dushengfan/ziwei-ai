@@ -1,4 +1,7 @@
 {
-  "navigationBarTitleText": "",
-  "navigationStyle": "custom"
+  "navigationBarTitleText": "AI 紫微斗数",
+  "navigationBarBackgroundColor": "#0a0a1a",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#0a0a1a",
+  "usingComponents": {}
 }
