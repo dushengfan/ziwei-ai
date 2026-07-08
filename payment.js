@@ -169,10 +169,20 @@ function getProducts(_req, res) {
   res.json({ products: list });
 }
 
+/** 消耗多个付费次数，返回是否成功 */
+function consumeMultiplePaidQuota(clientId, count) {
+  const remaining = paidQuotas[clientId] || 0;
+  if (remaining < count) return false;
+  paidQuotas[clientId] = remaining - count;
+  console.log(`  💎 付费次数消耗: ${clientId} -${count}次，剩余 ${remaining - count} 次`);
+  return true;
+}
+
 module.exports = {
   // 配额相关
   getPaidQuota,
   consumePaidQuota,
+  consumeMultiplePaidQuota,
   getClientId,
   // 路由处理函数
   createOrder,
