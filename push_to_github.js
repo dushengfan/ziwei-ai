@@ -45,6 +45,7 @@ const FILES = [
   'knowledge/liuyue.json',
   'knowledge/hepan.json',
   'knowledge/system_prompt.md',
+  'knowledge/system_prompt_premium.md',
   'AGENTS.md',
   'payment.js',
   'push_to_github.js',
