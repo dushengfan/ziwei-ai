@@ -12,16 +12,16 @@
 :root {
   --gold: #d4a853;
   --gold-light: #f0d68a;
-  --deep-space: #000512;
-  --purple-card: rgba(10, 5, 30, 0.75);
-  --purple-border: rgba(120, 80, 180, 0.35);
+  --purple-deep: #0a0a1a;
+  --purple-card: rgba(20, 15, 40, 0.85);
+  --purple-border: rgba(120, 80, 180, 0.4);
   --star: #e8e0f0;
 }
 
 * { box-sizing: border-box; }
 body {
   font-family: 'Noto Sans SC', sans-serif;
-  background: var(--deep-space);
+  background: var(--purple-deep);
   color: #e0dce8;
   margin: 0; padding: 0;
   overflow-x: hidden;
@@ -52,34 +52,21 @@ body {
 }
 
 /* ─── Gold Glow ─── */
-.gold-text {
-  background: linear-gradient(135deg, #FFD700, #FFA500);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
-}
+.gold-text { background: linear-gradient(135deg, #f0d68a, #d4a853, #b8943e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .gold-border { border: 1px solid rgba(212,168,83,0.5); }
 .gold-glow { box-shadow: 0 0 30px rgba(212,168,83,0.2), 0 0 60px rgba(212,168,83,0.08); }
 
 /* ─── Cards ─── */
 .card {
-  background: #0F071A;
+  background: var(--purple-card);
   backdrop-filter: blur(20px);
-  border: none;
-  border-radius: 24px;
-  width: 380px;
-  max-width: 95vw;
-  min-height: 520px;
-  box-shadow:
-    inset 0 0 20px rgba(173, 21, 233, 0.15),
-    0 0 20px rgba(181, 23, 158, 0.08),
-    0 0 60px rgba(181, 23, 158, 0.04),
-    0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--purple-border);
+  border-radius: 16px;
+  width: 100%; max-width: 420px;
 }
 
 /* ─── Form ─── */
-.form-group { margin-bottom: 24px; }
+.form-group { margin-bottom: 18px; }
 .form-label { display: block; font-size: 13px; color: #b0a8c8; margin-bottom: 6px; letter-spacing: 0.5px; }
 .form-input, .form-select {
   width: 100%; padding: 12px 14px;
@@ -91,8 +78,6 @@ body {
   transition: all 0.3s;
   -webkit-appearance: none;
 }
-.form-input::placeholder, .form-select::placeholder { color: #6C5B7B; font-size: 12px; }
-.form-input:focus::placeholder, .form-select:focus::placeholder { color: #C06C84; }
 .form-input:focus, .form-select:focus {
   outline: none;
   border-color: var(--gold);
@@ -106,13 +91,12 @@ body {
   background: linear-gradient(135deg, #7c3aed, #a855f7, #7c3aed);
   background-size: 200% 200%;
   border: none; border-radius: 14px;
-  color: #fff; font-size: 16px; font-weight: 600;
+  color: #fff; font-size: 18px; font-weight: 600;
   letter-spacing: 1px;
   cursor: pointer;
   position: relative; overflow: hidden;
   animation: btnShimmer 3s ease infinite;
   transition: transform 0.2s;
-  -webkit-text-stroke: 0.5px #4A006A;
 }
 .btn-primary:active { transform: scale(0.97); }
 .btn-primary:disabled { opacity: 0.5; animation: none; cursor: not-allowed; }
@@ -259,7 +243,7 @@ body {
 /* ─── Transition overlay ─── */
 #transition-overlay {
   position: fixed; inset: 0; z-index: 100;
-  background: radial-gradient(ellipse at center, rgba(114, 9, 183, 0.12) 0%, rgba(0, 5, 18, 0.92) 70%);
+  background: radial-gradient(ellipse at center, rgba(124,58,237,0.15) 0%, rgba(10,10,26,1) 70%);
   display: none; align-items: center; justify-content: center;
   flex-direction: column; gap: 16px;
 }
@@ -297,18 +281,18 @@ body {
 <!-- ═══════════ 首页 ═══════════ -->
 <div id="page-home" class="page active">
   <!-- 标题区 -->
-  <div style="text-align:center;margin:24px 0 16px;">
+  <div style="text-align:center;margin:30px 0 24px;">
     <div style="font-size:36px;margin-bottom:6px;">🪐</div>
-    <h1 style="font-size:48px;font-weight:700;margin:0;" class="gold-text">AI 紫微斗数</h1>
-    <p style="font-size:18px;color:#E9D5FF;margin:8px 0 0;letter-spacing:1.5px;">探索你的生命蓝图</p>
+    <h1 style="font-size:26px;font-weight:700;margin:0;" class="gold-text">AI 紫微斗数</h1>
+    <p style="font-size:14px;color:#9088a0;margin:8px 0 0;letter-spacing:1px;">探索你的生命蓝图</p>
   </div>
 
   <!-- 表单卡片 -->
-  <div class="card" style="padding:32px 28px;">
+  <div class="card" style="padding:24px 20px;">
     <!-- 日期：年月日三下拉 -->
     <div class="form-group">
       <label class="form-label">📅 公历出生日期</label>
-      <div style="display:flex;gap:24px;">
+      <div style="display:flex;gap:8px;">
         <select id="birthYear" class="form-select" style="flex:2;" onchange="updateDays()"></select>
         <select id="birthMonth" class="form-select" style="flex:1;" onchange="updateDays()"></select>
         <select id="birthDay" class="form-select" style="flex:1;"></select>
@@ -319,7 +303,7 @@ body {
     <div class="form-group">
       <label class="form-label">⏰ 出生时间</label>
       <input type="time" id="birthTime" class="form-input" value="14:30" style="color-scheme:dark;">
-      <p style="font-size:12px;color:#6C5B7B;margin-top:4px;" id="timeHint">输入具体时间（如 14:30），系统将自动换算为时辰</p>
+      <p style="font-size:11px;color:#6b6080;margin-top:4px;" id="timeHint">输入具体时间（如 14:30），系统将自动换算为时辰</p>
     </div>
 
     <!-- 性别 -->
@@ -336,11 +320,11 @@ body {
       <label class="form-label">🏙️ 出生城市（真太阳时校正）</label>
       <input type="text" id="city" class="form-input" placeholder="如：北京、上海、成都...（留空=北京时间）" list="cityList" autocomplete="off">
       <datalist id="cityList"></datalist>
-      <p style="font-size:12px;color:#6C5B7B;margin-top:4px;">根据城市经度自动校正真太阳时，确保时辰精准</p>
+      <p style="font-size:11px;color:#6b6080;margin-top:4px;">根据城市经度自动校正真太阳时，确保时辰精准</p>
     </div>
 
     <!-- 提交按钮 -->
-    <button class="btn-primary" onclick="submitForm()" style="margin-top:32px;">
+    <button class="btn-primary" onclick="submitForm()" style="margin-top:20px;">
       ✨ 开启命盘
     </button>
   </div>
@@ -395,170 +379,79 @@ body {
 
 <script>
 // ============================================================
-// 动态宇宙星空背景 (Canvas) — 3层纵深：远景 → 中景 → 近景螺旋星云
+// 星空背景 (Canvas)
 // ============================================================
 const canvas = document.getElementById('starfield');
 const ctx = canvas.getContext('2d');
-
-let farStars = [], midStars = [], nebulaParticles = [];
+let stars = [];
 let shootingStars = [];
-let nebulaOffset = 0;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  initStars();
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// ─── 远景星点（0.1px，#D4C1EC，5%透明度）───
-function createFarStars(count = 600) {
-  farStars = [];
+// 创建星空
+function createStars(count = 150) {
+  stars = [];
   for (let i = 0; i < count; i++) {
-    farStars.push({
+    stars.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      baseAlpha: Math.random() * 0.03 + 0.02,
-      twinkleSpeed: Math.random() * 0.003 + 0.001,
+      r: Math.random() * 1.8 + 0.3,
+      opacity: Math.random() * 0.6 + 0.3,
+      twinkleSpeed: Math.random() * 0.02 + 0.005,
       twinkleOffset: Math.random() * Math.PI * 2
     });
   }
 }
-
-// ─── 中景闪烁星点（2-5px，#E9D5FF）───
-function createMidStars(count = 80) {
-  midStars = [];
-  for (let i = 0; i < count; i++) {
-    midStars.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: Math.random() * 3 + 2,
-      opacity: Math.random() * 0.4 + 0.5,
-      twinkleSpeed: Math.random() * 0.015 + 0.005,
-      twinkleOffset: Math.random() * Math.PI * 2
-    });
-  }
-}
-
-// ─── 近景螺旋星云粒子（#7209B7，15%透明度）───
-function createNebula(count = 120) {
-  nebulaParticles = [];
-  const arms = 3;
-  for (let i = 0; i < count; i++) {
-    const arm = i % arms;
-    const t = Math.random() * Math.PI * 4;
-    const r = 40 + Math.random() * Math.min(canvas.width, canvas.height) * 0.45;
-    const armOffset = (arm / arms) * Math.PI * 2;
-    const spread = (Math.random() - 0.5) * 0.6;
-    nebulaParticles.push({
-      arm, t, r,
-      armOffset, spread,
-      size: Math.random() * 80 + 30,
-      baseAlpha: Math.random() * 0.08 + 0.06,
-      driftSpeed: Math.random() * 0.0003 + 0.0001,
-      driftOffset: Math.random() * Math.PI * 2,
-      color: i % 3 === 0 ? '#7209B7' : (i % 3 === 1 ? '#B5179E' : '#3A0CA3')
-    });
-  }
-}
-
-function initStars() {
-  createFarStars();
-  createMidStars();
-  createNebula();
-}
-initStars();
-
-// Hex → rgba 辅助
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+createStars();
 
 // 偶尔流星
 function maybeShootingStar() {
-  if (Math.random() < 0.01 && shootingStars.length < 1) {
+  if (Math.random() < 0.015 && shootingStars.length < 2) {
     shootingStars.push({
-      x: Math.random() * canvas.width * 0.6,
-      y: Math.random() * canvas.height * 0.25,
-      vx: 5 + Math.random() * 7,
-      vy: 2 + Math.random() * 3,
+      x: Math.random() * canvas.width * 0.8,
+      y: Math.random() * canvas.height * 0.3,
+      vx: 4 + Math.random() * 6,
+      vy: 1.5 + Math.random() * 3,
       life: 1,
-      decay: 0.012 + Math.random() * 0.02
+      decay: 0.015 + Math.random() * 0.025
     });
   }
 }
 
-function drawCosmos(timestamp) {
-  const w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
+function drawStars(timestamp) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // ── 深空蓝底色 #000512（禁用纯黑，确保空间纵深感）───
-  ctx.fillStyle = '#000512';
-  ctx.fillRect(0, 0, w, h);
+  // 深空渐变背景
+  const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/3, 0, canvas.width/2, canvas.height, canvas.height);
+  grad.addColorStop(0, 'rgba(30, 15, 50, 0.3)');
+  grad.addColorStop(0.5, 'rgba(10, 5, 20, 0.1)');
+  grad.addColorStop(1, 'rgba(5, 2, 10, 0.3)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // ── 深邃空间层次渐变 ──
-  const depthGrad = ctx.createRadialGradient(w * 0.3, h * 0.2, 0, w * 0.5, h * 0.5, Math.max(w, h));
-  depthGrad.addColorStop(0, 'rgba(20, 5, 50, 0.15)');
-  depthGrad.addColorStop(0.4, 'rgba(5, 2, 25, 0.08)');
-  depthGrad.addColorStop(1, 'rgba(0, 5, 18, 0)');
-  ctx.fillStyle = depthGrad;
-  ctx.fillRect(0, 0, w, h);
-
-  // ── 远景星点（0.1px，#D4C1EC，5%透明度）───
-  for (const s of farStars) {
-    const flicker = Math.sin(timestamp * s.twinkleSpeed + s.twinkleOffset) * 0.4 + 0.6;
-    const alpha = s.baseAlpha * flicker;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, 0.1, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(212, 193, 236, ${alpha})`;
-    ctx.fill();
-  }
-
-  // ── 近景螺旋星云（#7209B7 / #B5179E / #3A0CA3，15%透明度）───
-  nebulaOffset += 0.0002;
-  const cx = w * 0.65, cy = h * 0.55;
-  for (const p of nebulaParticles) {
-    const angle = p.t + p.armOffset + nebulaOffset + p.spread;
-    const dist = p.r * (0.8 + Math.sin(timestamp * p.driftSpeed + p.driftOffset) * 0.15);
-    const px = cx + Math.cos(angle) * dist;
-    const py = cy + Math.sin(angle) * dist;
-    const driftAlpha = 0.6 + Math.sin(timestamp * 0.0005 + p.driftOffset) * 0.4;
-    const alpha = p.baseAlpha * driftAlpha;
-
-    const g = ctx.createRadialGradient(px, py, 0, px, py, p.size);
-    g.addColorStop(0, hexToRgba(p.color, alpha));
-    g.addColorStop(1, hexToRgba(p.color, 0));
-    ctx.beginPath();
-    ctx.arc(px, py, p.size, 0, Math.PI * 2);
-    ctx.fillStyle = g;
-    ctx.fill();
-  }
-
-  // ── 中景闪烁星点（2-5px，#E9D5FF）───
-  for (const s of midStars) {
-    const flicker = Math.sin(timestamp * s.twinkleSpeed + s.twinkleOffset) * 0.35 + 0.65;
+  // 星星
+  for (const s of stars) {
+    const flicker = Math.sin(timestamp * s.twinkleSpeed + s.twinkleOffset) * 0.3 + 0.7;
     const alpha = s.opacity * flicker;
     ctx.beginPath();
     ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(233, 213, 255, ${alpha})`;
+    ctx.fillStyle = `rgba(220,210,240,${alpha})`;
     ctx.fill();
-    // 亮星十字光芒
-    if (flicker > 0.85) {
-      const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 4);
-      glow.addColorStop(0, `rgba(233, 213, 255, ${alpha * 0.3})`);
-      glow.addColorStop(1, 'rgba(233, 213, 255, 0)');
+    // 亮星加光晕
+    if (s.r > 1.3 && flicker > 0.85) {
       ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r * 4, 0, Math.PI * 2);
-      ctx.fillStyle = glow;
+      ctx.arc(s.x, s.y, s.r * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(180,160,220,${alpha * 0.15})`;
       ctx.fill();
     }
   }
 
-  // ── 流星 ──
+  // 流星
   maybeShootingStar();
   for (let i = shootingStars.length - 1; i >= 0; i--) {
     const ss = shootingStars[i];
@@ -568,15 +461,15 @@ function drawCosmos(timestamp) {
     if (ss.life <= 0) { shootingStars.splice(i, 1); continue; }
     ctx.beginPath();
     ctx.moveTo(ss.x, ss.y);
-    ctx.lineTo(ss.x - ss.vx * 8, ss.y - ss.vy * 8);
-    ctx.strokeStyle = `rgba(233, 213, 255, ${ss.life * 0.7})`;
-    ctx.lineWidth = 1.2;
+    ctx.lineTo(ss.x - ss.vx * 6, ss.y - ss.vy * 6);
+    ctx.strokeStyle = `rgba(255,255,255,${ss.life * 0.8})`;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
   }
 
-  requestAnimationFrame(drawCosmos);
+  requestAnimationFrame(drawStars);
 }
-requestAnimationFrame(drawCosmos);
+requestAnimationFrame(drawStars);
 
 // ============================================================
 // 城市候选项（datalist）
