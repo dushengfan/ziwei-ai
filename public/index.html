@@ -398,6 +398,58 @@ body {
   </button>
 </div>
 
+<!-- ═══════════ 解锁弹窗 ═══════════ -->
+<div class="modal-overlay" id="unlock-modal">
+  <div class="modal-card">
+    <h3>🔮 <span id="unlock-title">深度天机</span></h3>
+    <p id="unlock-desc">此乃天机深度推演，需消耗 1 次算力积分</p>
+    <button class="modal-btn gold" onclick="doUnlock('ad')">📺 观看广告解锁（模拟）</button>
+    <button class="modal-btn purple" onclick="doUnlock('pay')">💎 支付 9.9 元解锁（模拟）</button>
+    <button class="modal-close" onclick="closeModal()">暂不需要，返回</button>
+  </div>
+</div>
+
+<!-- ═══════════ 合盘表单弹窗 ═══════════ -->
+<div class="modal-overlay" id="hepan-form-modal">
+  <div class="modal-card" style="text-align:left;">
+    <h3 style="text-align:center;">💞 双人合盘</h3>
+    <p style="text-align:center;font-size:13px;color:#b0a8c8;">请输入对方信息</p>
+    <div class="hepan-form-group">
+      <label>📅 对方出生日期</label>
+      <div style="display:flex;gap:6px;">
+        <select id="hp-year" style="flex:2;"></select>
+        <select id="hp-month" style="flex:1;"></select>
+        <select id="hp-day" style="flex:1;"></select>
+      </div>
+    </div>
+    <div class="hepan-form-group"><label>⏰ 对方出生时间</label><input type="time" id="hp-time" value="14:30" style="color-scheme:dark;"></div>
+    <div class="hepan-form-group">
+      <label>👤 对方性别</label>
+      <div style="display:flex;gap:8px;">
+        <button class="gender-btn active" data-g="女" onclick="selectHpGender(this)" style="margin:0;flex:1;">♀ 女</button>
+        <button class="gender-btn" data-g="男" onclick="selectHpGender(this)" style="margin:0;flex:1;">♂ 男</button>
+      </div>
+    </div>
+    <div class="hepan-form-group"><label>🏙️ 对方城市（可选）</label><input type="text" id="hp-city" placeholder="如：上海"></div>
+    <div class="hepan-form-group">
+      <label>💑 你们的关系</label>
+      <select id="hp-relation"><option value="lover">💕 情侣/夫妻</option><option value="partner">🤝 商业合伙人</option><option value="parent_child">👨‍👧 亲子关系</option></select>
+    </div>
+    <button class="modal-btn gold" onclick="submitHepan()" style="margin-top:8px;">✨ 开始合盘</button>
+    <button class="modal-close" onclick="document.getElementById('hepan-form-modal').classList.remove('active')">取消</button>
+  </div>
+</div>
+
+<!-- ═══════════ 购买次数弹窗 ═══════════ -->
+<div class="modal-overlay" id="purchase-modal">
+  <div class="modal-card" style="padding:24px 20px;">
+    <h3>✨ 解锁无限探索</h3>
+    <p id="purchase-subtitle" style="font-size:13px;">今日免费额度已用完 —— 但星辰不会等待</p>
+    <div id="purchase-packages" style="margin:16px 0;"></div>
+    <button class="modal-close" onclick="document.getElementById('purchase-modal').classList.remove('active')">暂不购买，明天再来</button>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // 星空背景 (Canvas)
@@ -686,7 +738,8 @@ async function switchTab(module) {
       let err;
       try { err = JSON.parse(errText); } catch { err = { error: '未知错误' }; }
       if (response.status === 429) {
-        content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">🚫 ${err.error || '今日额度已用完'}</p>`;
+        const canBuy = err.canPurchase !== false;
+        content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#ff6b6b;">🚫 ${err.error || '今日额度已用完'}</p>${canBuy ? '<button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.2);border:1px solid var(--gold);border-radius:10px;color:var(--gold-light);font-size:14px;cursor:pointer;">💎 立即购买次数</button>' : ''}</div>`;
         refreshQuota();
       } else {
         content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ ${err.error || errText}</p>`;
@@ -795,14 +848,19 @@ async function refreshQuota() {
     const r = await fetch('/api/quota');
     const q = await r.json();
     const badge = document.getElementById('quota-badge');
-    if (q.remaining <= 0) {
-      badge.textContent = '🚫 今日额度已用完，明天再来吧 🌙';
+    const total = q.totalRemaining ?? q.remaining;
+    const paid = q.paidRemaining || 0;
+    if (total <= 0) {
+      badge.innerHTML = '🚫 今日额度已用完，<span style="color:var(--gold-light);cursor:pointer;text-decoration:underline;" onclick="showPurchaseModal()">💎 立即购买</span>';
       badge.style.color = '#ff6b6b';
-    } else if (q.remaining <= 2) {
-      badge.textContent = `🎫 今日剩余：${q.remaining} / ${q.limit} 次（即将用完）`;
+    } else if (paid > 0) {
+      badge.innerHTML = `🎫 免费${q.freeRemaining ?? (q.limit-q.used)}次 + 💎 <span style="color:var(--gold-light);">付费${paid}次</span>`;
+      badge.style.color = '#b0a8c8';
+    } else if (total <= 2) {
+      badge.textContent = `🎫 今日剩余：${total} / ${q.limit || 5} 次（即将用完）`;
       badge.style.color = '#f0d68a';
     } else {
-      badge.textContent = `🎫 今日剩余：${q.remaining} / ${q.limit} 次`;
+      badge.textContent = `🎫 今日剩余：${total} / ${q.limit || 5} 次`;
       badge.style.color = '#6b6080';
     }
   } catch {}
@@ -927,6 +985,92 @@ async function doAdvancedStream(module, extraData) {
       }
     }
   } catch (e) { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ 网络错误</p>'; }
+}
+
+// ============================================================
+// 购买次数包流程
+// ============================================================
+let currentOrderId = null;
+
+const PURCHASE_PACKAGES = [
+  { type: '10次包',  count: 10,  price: 9.9,  desc: '适合轻度探索' },
+  { type: '30次包',  count: 30,  price: 19.9, desc: '🔥 最受欢迎', hot: true },
+  { type: '100次包', count: 100, price: 49.9, desc: '深度玩家首选' },
+];
+
+function showPurchaseModal() {
+  const pkgDiv = document.getElementById('purchase-packages');
+  pkgDiv.innerHTML = PURCHASE_PACKAGES.map((p, i) => `
+    <div class="purchase-pkg ${p.hot ? 'hot' : ''}" onclick="selectPackage('${p.type}', this)" style="
+      background: rgba(255,255,255,0.04); border: 1px solid ${p.hot ? 'var(--gold)' : 'var(--purple-border)'};
+      border-radius: 12px; padding: 14px; margin-bottom: 10px; cursor: pointer;
+      text-align: left; transition: all 0.3s; position: relative;
+    ">
+      ${p.hot ? '<span style="position:absolute;top:-8px;right:12px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;font-size:11px;padding:2px 10px;border-radius:10px;">🔥 最受欢迎</span>' : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-size:16px;font-weight:600;color:#e0dce8;">${p.type}</span>
+          <span style="font-size:12px;color:#9088a0;margin-left:8px;">${p.desc}</span>
+        </div>
+        <span style="font-size:20px;font-weight:700;color:var(--gold-light);">¥${p.price}</span>
+      </div>
+      <div id="pkg-action-${i}" style="margin-top:8px;display:none;">
+        <button onclick="event.stopPropagation();doPurchase('${p.type}')" style="width:100%;padding:10px;background:linear-gradient(135deg,#d4a853,#f0d68a);border:none;border-radius:8px;color:#0a0a1a;font-weight:600;cursor:pointer;">✨ 确认购买 ¥${p.price}</button>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('purchase-modal').classList.add('active');
+  currentOrderId = null;
+  document.querySelectorAll('[id^="pkg-action-"]').forEach(el => el.style.display = 'none');
+}
+
+function selectPackage(type, el) {
+  document.querySelectorAll('[id^="pkg-action-"]').forEach(el => el.style.display = 'none');
+  const actionEl = el.querySelector('[id^="pkg-action-"]');
+  if (actionEl) actionEl.style.display = 'block';
+  document.querySelectorAll('.purchase-pkg').forEach(p => p.style.borderColor = 'var(--purple-border)');
+  el.style.borderColor = 'var(--gold)';
+}
+
+async function doPurchase(productType) {
+  const btn = event.target;
+  btn.textContent = '⏳ 创建订单中...';
+  btn.disabled = true;
+
+  try {
+    const r1 = await fetch('/api/pay/order', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productType })
+    });
+    const order = await r1.json();
+    if (!order.success) { alert(order.error); btn.textContent = '确认购买'; btn.disabled = false; return; }
+
+    currentOrderId = order.orderId;
+    btn.textContent = '💰 模拟支付中...';
+
+    const r2 = await fetch('/api/pay/callback', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: currentOrderId })
+    });
+    const result = await r2.json();
+
+    if (result.success) {
+      document.getElementById('purchase-modal').classList.remove('active');
+      refreshQuota();
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:300;background:rgba(20,15,40,0.95);border:1px solid var(--gold);border-radius:14px;padding:16px 24px;text-align:center;color:var(--gold-light);font-size:15px;box-shadow:0 0 30px rgba(212,168,83,0.3);';
+      toast.innerHTML = `✅ 购买成功！<br>💎 +${result.count} 次付费额度已到账`;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.remove(), 500); }, 2000);
+      if (activeTab && submitParams) switchTab(activeTab);
+    } else {
+      alert('支付失败: ' + (result.error || '未知错误'));
+    }
+  } catch (e) {
+    alert('网络错误：' + e.message);
+  }
+  btn.textContent = '✨ 确认购买 ¥' + PURCHASE_PACKAGES.find(p => p.type === productType)?.price;
+  btn.disabled = false;
 }
 
 </script>
