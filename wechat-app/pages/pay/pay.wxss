@@ -1,0 +1,35 @@
+/* 购买页样式 */
+page { background: #0a0a1a; color: #e0dce8; }
+.page { padding: 40rpx 24rpx 80rpx; }
+.hero { text-align: center; padding: 40rpx 0; }
+.hero-icon { font-size: 64rpx; display: block; }
+.hero-title { font-size: 38rpx; font-weight: 700; color: #f0d68a; display: block; margin-top: 10rpx; }
+.hero-subtitle { font-size: 26rpx; color: #9088a0; display: block; margin-top: 10rpx; }
+
+.pkg-card {
+  background: rgba(255,255,255,0.04);
+  border: 1rpx solid rgba(120,80,180,0.4);
+  border-radius: 20rpx; padding: 28rpx;
+  margin-bottom: 20rpx; position: relative;
+}
+.pkg-card.hot { border-color: #d4a853; background: rgba(212,168,83,0.05); }
+.pkg-badge {
+  position: absolute; top: -12rpx; right: 24rpx;
+  background: linear-gradient(135deg,#f97316,#ef4444);
+  color: #fff; font-size: 20rpx; padding: 4rpx 20rpx; border-radius: 16rpx;
+}
+.pkg-top { display: flex; justify-content: space-between; align-items: center; }
+.pkg-name { font-size: 34rpx; font-weight: 600; color: #e0dce8; display: block; }
+.pkg-desc { font-size: 24rpx; color: #9088a0; display: block; margin-top: 4rpx; }
+.pkg-price { font-size: 40rpx; font-weight: 700; color: #f0d68a; }
+.pkg-action { margin-top: 24rpx; }
+
+.btn-gold {
+  text-align: center; padding: 24rpx;
+  background: linear-gradient(135deg, #d4a853, #f0d68a);
+  border-radius: 20rpx; color: #0a0a1a;
+  font-size: 30rpx; font-weight: 600;
+}
+
+.footer-text { text-align: center; padding: 40rpx 0; }
+.footer-text text { display: block; font-size: 24rpx; color: #504878; line-height: 1.6; }
