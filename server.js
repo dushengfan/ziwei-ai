@@ -619,7 +619,7 @@ async function deepseekStream(res, systemPrompt, userMessage) {
   if (!apiKey) { res.write(`data: ${JSON.stringify({ type: 'error', message: '服务器未配置 DEEPSEEK_API_KEY' })}\n\n`); return; }
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-    body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }], stream: true, temperature: 0.7, max_tokens: 4096 })
+    body: JSON.stringify({ model: 'deepseek-v4-pro', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }], stream: true, temperature: 0.7, max_tokens: 4096 })
   });
   if (!response.ok) { res.write(`data: ${JSON.stringify({ type: 'error', message: `DeepSeek API ${response.status}` })}\n\n`); return; }
   const reader = response.body.getReader();
@@ -977,7 +977,7 @@ app.post('/api/reading/premium', async (req, res) => {
 
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-      body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }], stream: true, temperature: 0.7, max_tokens: 4096 })
+      body: JSON.stringify({ model: 'deepseek-v4-pro', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }], stream: true, temperature: 0.7, max_tokens: 4096 })
     });
     if (!response.ok) { res.write(`data: ${JSON.stringify({ type: 'error', message: `DeepSeek API ${response.status}` })}\n\n`); return res.end(); }
 
