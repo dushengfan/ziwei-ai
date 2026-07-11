@@ -7,13 +7,14 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@300;400;500&family=Noto+Serif+SC:wght@400;600;700&display=swap');
 
 /* CHANGED: 赛博玄学风 Design System 色彩变量 */
 :root {
   --gold: #D4AF37;
   --gold-light: #f0d68a;
   --bg-dark: #0B0714;
+  --dark-bg: #0B0714;
   --bg-mid: #121826;
   --card-bg: rgba(255, 255, 255, 0.04);
   --card-border: rgba(255, 255, 255, 0.08);
@@ -34,12 +35,14 @@ body {
   min-height: 100dvh;
   font-size: 15px;
   line-height: 1.7;
+  letter-spacing: 0.02em;
 }
 
 /* CHANGED: 标题统一使用 Noto Serif SC 衬线体，增加字间距 */
-h1, h2, h3 {
+h1, h2, h3, h4 {
   font-family: 'Noto Serif SC', serif;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
 }
 
 /* ─── Starfield Background ─── */
@@ -132,12 +135,13 @@ h1, h2, h3 {
   letter-spacing: 0.02em;
 }
 .brand-core {
-  font-size: clamp(34px, 8.5vw, 44px);
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: clamp(30px, 7.2vw, 39px);
   background: linear-gradient(135deg, #f0d68a, #D4AF37, #b8943e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   margin: 0 4px 0 5px;
 }
 
@@ -329,55 +333,618 @@ h1, h2, h3 {
 }
 .advanced-panel.open { max-height: 300px; margin-bottom: 10px; }
 
-/* CHANGED: 星盘图使用更柔和的间距与悬停效果 */
+/* CHANGED: 星盘图重构为传统方形盘面 — 12 宫环绕中宫 */
 .star-chart {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  padding: 10px;
+  grid-template-rows: repeat(4, 1fr);
+  aspect-ratio: 1/1;
+  width: 100%;
+  gap: 1px;
+  padding: 8px;
+  background: rgba(212, 168, 83, 0.08);
+  border: 1px solid rgba(212, 168, 83, 0.22);
+  border-radius: 16px;
+  box-shadow: inset 0 0 24px rgba(212, 168, 83, 0.06);
 }
+
 .chart-cell {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 10px 4px;
+  border-radius: 8px;
+  padding: 6px 3px;
   text-align: center;
-  font-size: 12px;
-  min-height: 64px;
+  font-size: 11px;
   display: flex; flex-direction: column;
   justify-content: center; align-items: center;
   transition: all 0.3s ease;
+  overflow: hidden;
+  min-height: 72px;
 }
 .chart-cell:hover {
-  background: rgba(255, 255, 255, 0.05);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
 }
+
 .chart-cell.ming {
-  border-color: var(--gold);
-  box-shadow: 0 0 18px rgba(212, 168, 83, 0.22);
-  background: rgba(212, 168, 83, 0.07);
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 14px rgba(212, 168, 83, 0.22), inset 0 0 10px rgba(212, 168, 83, 0.08);
+  background: rgba(212, 168, 83, 0.09);
+  position: relative;
 }
-.chart-cell .cell-name { color: var(--text-secondary); font-size: 11px; margin-bottom: 2px; }
-.chart-cell .cell-star { color: var(--text-primary); font-size: 13px; font-weight: 600; line-height: 1.35; }
-.chart-cell .cell-star .dim { color: var(--text-tertiary); font-size: 11px; font-weight: 400; }
+/* CHANGED: 命宫右上角小金点指示 */
+.chart-cell.ming::after {
+  content: '';
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 6px var(--gold);
+}
+
+.chart-cell .cell-name {
+  color: var(--text-secondary);
+  font-size: 10px;
+  margin-bottom: 2px;
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  opacity: 0.75;
+}
+
+/* CHANGED: 数字使用 JetBrains Mono，提升精致感 */
+.premium-price,
+.current-price,
+.original-price,
+.social-proof,
+#quota-badge,
+.process-circle,
+#year,
+#month,
+#day,
+#hour,
+.urgency-bar,
+code,
+pre {
+  font-family: 'JetBrains Mono', monospace;
+}
+.chart-cell .cell-star {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  width: 100%;
+}
+.chart-cell .cell-main-star {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.chart-cell .cell-second-star {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+  font-weight: 500;
+}
+.chart-cell .cell-brightness {
+  font-size: 9px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+.chart-cell .cell-mutagen {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--gold-light);
+  background: rgba(212, 168, 83, 0.14);
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  border-radius: 4px;
+  padding: 0 3px;
+  margin-top: 2px;
+}
+.chart-cell .cell-star .dim {
+  opacity: 0.55 !important;
+  color: inherit !important;
+}
+.chart-cell .cell-star .dim .cell-brightness { opacity: 0.55 !important; }
 .chart-cell.ming .cell-name { color: var(--gold-light); }
 
-/* CHANGED: Tab 内容区使用月光白主文本与金色标题 */
+/* CHANGED: 星曜色彩编码系统 — 一眼识别吉凶与四化 */
+.star-royal { color: #f0d68a; }
+.star-romance { color: #e88aa8; }
+.star-kill { color: #7fb8c4; }
+.star-aid { color: #9ad8a0; }
+
+.hua-lu, .hua-quan, .hua-ke, .hua-ji {
+  display: inline-block;
+  font-size: 10px;
+  border-radius: 10px;
+  padding: 0 3px;
+  margin-top: 2px;
+  font-weight: 500;
+}
+.hua-lu { color: #6ee7a0; background: rgba(110, 231, 160, 0.12); border: 1px solid rgba(110, 231, 160, 0.25); }
+.hua-quan { color: #d98ad0; background: rgba(217, 138, 208, 0.12); border: 1px solid rgba(217, 138, 208, 0.25); }
+.hua-ke { color: #6bb6e0; background: rgba(107, 182, 224, 0.12); border: 1px solid rgba(107, 182, 224, 0.25); }
+.hua-ji { color: #e07a7a; background: rgba(224, 122, 122, 0.12); border: 1px solid rgba(224, 122, 122, 0.25); }
+
+/* CHANGED: 宫位底色语义 — 吉星会照 vs 煞星冲破 */
+.cell-auspicious {
+  background: linear-gradient(135deg, rgba(240, 214, 138, 0.04), rgba(255, 255, 255, 0.02)) !important;
+}
+.cell-affliction {
+  background: linear-gradient(135deg, rgba(127, 184, 196, 0.05), rgba(255, 255, 255, 0.02)) !important;
+}
+
+/* CHANGED: 中宫样式 — 命主核心信息，更深背景 + 内发光 */
+.chart-center {
+  grid-row: 2 / 4;
+  grid-column: 2 / 4;
+  background: radial-gradient(circle at center, rgba(11, 7, 20, 0.85), rgba(20, 15, 35, 0.95));
+  border: 1px solid rgba(212, 168, 83, 0.25);
+  border-radius: 12px;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center;
+  padding: 10px;
+  box-shadow: inset 0 0 20px rgba(212, 168, 83, 0.1), 0 0 16px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+.chart-center .center-star {
+  font-size: clamp(16px, 4.5vw, 22px);
+  font-weight: 700;
+  color: var(--gold-light);
+  font-family: 'Noto Serif SC', serif;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+.chart-center .center-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  font-family: 'Noto Serif SC', serif;
+}
+.chart-center .center-lords {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.chart-center .center-dot {
+  color: var(--gold);
+  opacity: 0.6;
+}
+
+/* CHANGED: 深度解读专区 — 套餐选择区样式 */
+.premium-section {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 28px;
+}
+.premium-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.premium-title {
+  font-size: 16px;
+  color: var(--gold-light);
+  font-family: 'Noto Serif SC', serif;
+  margin: 0;
+}
+.hot-badge {
+  font-size: 10px;
+  color: var(--dark-bg);
+  background: linear-gradient(135deg, #f0d68a, #D4AF37);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  animation: pulseBadge 2s ease-in-out infinite;
+}
+@keyframes pulseBadge {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 6px rgba(212,168,83,0.3); }
+  50% { opacity: 0.9; transform: scale(1.05); box-shadow: 0 0 12px rgba(212,168,83,0.5); }
+}
+
+#premium-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: stretch;
+}
+.premium-card {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.premium-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212,168,83,0.3);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.premium-card.featured {
+  margin-top: 0;
+  padding-top: 28px;
+  padding-bottom: 20px;
+  border: 1px solid var(--gold);
+  background: linear-gradient(180deg, rgba(212,168,83,0.18), rgba(212,168,83,0.05));
+  box-shadow: 0 0 42px rgba(212,168,83,0.28), 0 8px 24px rgba(0,0,0,0.25);
+  transform: scale(1);
+  z-index: 2;
+}
+.premium-card.featured:hover {
+  transform: translateY(-4px) scale(1);
+  box-shadow: 0 0 56px rgba(212,168,83,0.38), 0 12px 32px rgba(0,0,0,0.3);
+}
+
+.premium-badge {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--dark-bg);
+  background: linear-gradient(135deg, #f0d68a, #D4AF37);
+  padding: 4px 8px;
+  border-radius: 10px 10px 0 0;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.premium-badge::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #D4AF37;
+}
+
+.premium-icon {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.premium-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+}
+.premium-benefits {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+}
+.benefit-tag:not(:last-child)::after {
+  content: '·';
+  margin: 0 3px;
+}
+.premium-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin-bottom: 10px;
+}
+.premium-price.featured-price {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.original-price {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+  font-weight: 400;
+}
+.current-price {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--gold-light);
+  line-height: 1;
+}
+.premium-btn {
+  width: 100%;
+  font-size: 13px;
+  padding: 10px;
+  animation: none !important;
+  white-space: nowrap;
+  line-height: 1.25;
+  margin-top: auto;
+}
+.featured-btn {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: var(--dark-bg);
+  font-weight: 800;
+}
+
+/* CHANGED: 桌面端恢复三列横排 */
+@media (min-width: 768px) {
+  #premium-cards { flex-direction: row; align-items: flex-start; }
+  .premium-card { flex: 1; min-width: 0; width: auto; padding: 16px 10px; }
+  .premium-card.featured { margin-top: -8px; padding-top: 28px; padding-bottom: 20px; }
+}
+
+.social-proof {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 14px;
+  opacity: 0.85;
+}
+.urgency-bar {
+  text-align: center;
+  font-size: 12px;
+  color: var(--gold-light);
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(212,168,83,0.4);
+  border-radius: 20px;
+  background: rgba(212,168,83,0.06);
+  animation: shimmerUrgency 2.5s ease-in-out infinite;
+}
+@keyframes shimmerUrgency {
+  0%, 100% { opacity: 0.85; box-shadow: 0 0 6px rgba(212,168,83,0.1); }
+  50% { opacity: 1; box-shadow: 0 0 16px rgba(212,168,83,0.25); }
+}
+
+/* CHANGED: 首页信任 + 流程信息条，降低付费决策门槛 */
+.trust-process-wrapper {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 24px;
+}
+.trust-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.trust-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+}
+.trust-col span {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.3;
+}
+.trust-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--gold-light);
+  flex-shrink: 0;
+}
+.trust-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(212, 168, 83, 0.3);
+  flex-shrink: 0;
+}
+.process-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+.process-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 64px;
+}
+.process-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-light);
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.process-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.process-arrow {
+  width: 32px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold-light), var(--gold));
+  position: relative;
+  flex-shrink: 0;
+  margin-top: 11px;
+}
+.process-arrow::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -3px;
+  border-top: 3.5px solid transparent;
+  border-bottom: 3.5px solid transparent;
+  border-left: 5px solid var(--gold);
+}
+
+/* CHANGED: Tab 内容区升级为付费报告级杂志排版 */
 #tab-content h1, #tab-content h2, #tab-content h3 {
   color: var(--gold-light);
   margin: 22px 0 12px;
   font-family: 'Noto Serif SC', serif;
 }
-#tab-content h2 { font-size: 20px; border-bottom: 1px solid rgba(212, 168, 83, 0.2); padding-bottom: 8px; }
+#tab-content h2 {
+  font-size: 20px;
+  border-bottom: none;
+  padding-bottom: 8px;
+  position: relative;
+}
+#tab-content h2::before {
+  content: '✦';
+  color: var(--gold-light);
+  margin-right: 8px;
+  font-size: 0.65em;
+  vertical-align: middle;
+}
+#tab-content h2::after {
+  content: '';
+  display: block;
+  width: 40%;
+  height: 1px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, var(--gold-light), transparent);
+}
 #tab-content h3 { font-size: 17px; }
-#tab-content p { margin: 12px 0; color: var(--text-primary); }
-#tab-content ul, #tab-content ol { padding-left: 22px; }
-#tab-content li { margin: 5px 0; }
-#tab-content strong { color: var(--gold-light); }
-#tab-content blockquote {
-  border-left: 3px solid var(--gold);
-  padding-left: 16px; color: var(--text-secondary);
+#tab-content p {
+  margin: 18px 0;
+  color: var(--text-primary);
+}
+#tab-content.loaded p:first-of-type::first-letter {
+  float: left;
+  font-size: 3em;
+  line-height: 0.9;
+  font-family: 'Noto Serif SC', serif;
+  color: var(--gold-light);
+  margin-right: 6px;
+  margin-top: 2px;
+}
+#tab-content ul, #tab-content ol {
+  list-style: none;
+  padding-left: 0;
   margin: 14px 0;
+}
+#tab-content li {
+  position: relative;
+  margin: 8px 0;
+  padding-left: 22px;
+  line-height: 1.6;
+}
+#tab-content ul li::before {
+  content: '✦';
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  color: var(--gold-light);
+  font-size: 0.75em;
+}
+#tab-content ol {
+  counter-reset: report-ol;
+}
+#tab-content ol li {
+  counter-increment: report-ol;
+}
+#tab-content ol li::before {
+  content: counter(report-ol) '.';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--gold-light);
+  font-weight: 700;
+  font-family: 'Noto Serif SC', serif;
+}
+#tab-content strong {
+  color: var(--gold-light);
+  background: rgba(212, 168, 83, 0.12);
+  padding: 2px 4px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+#tab-content blockquote {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(212, 168, 83, 0.10), rgba(212, 168, 83, 0.02));
+  box-shadow: inset 0 0 24px rgba(212, 168, 83, 0.06);
+  padding: 20px 18px;
+  margin: 18px 0;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  font-style: italic;
+  color: var(--text-primary);
+  overflow: hidden;
+}
+#tab-content blockquote::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+#tab-content blockquote::before {
+  content: '“';
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--gold-light);
+  opacity: 0.08;
+  font-family: 'Noto Serif SC', serif;
+  font-style: normal;
+  pointer-events: none;
+  z-index: 0;
+}
+#tab-content blockquote p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: inherit;
+}
+#tab-content hr {
+  border: none;
+  height: 16px;
+  margin: 16px 0;
+  text-align: center;
+  position: relative;
+}
+#tab-content hr::before {
+  content: '✦   ✦   ✦';
+  color: var(--gold-light);
+  font-size: 10px;
+  letter-spacing: 10px;
+  opacity: 0.7;
 }
 #tab-content code { background: rgba(255, 255, 255, 0.06); padding: 3px 8px; border-radius: 6px; font-size: 13px; }
 #tab-content pre { background: rgba(0, 0, 0, 0.2); padding: 14px; border-radius: 12px; overflow-x: auto; font-size: 13px; border: 1px solid var(--card-border); }
@@ -398,6 +965,16 @@ h1, h2, h3 {
   border-top-color: var(--gold);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  position: relative;
+}
+.loading-spinner::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 2px solid transparent;
+  border-top-color: rgba(240, 214, 138, 0.5);
+  border-radius: 50%;
+  animation: spin 1.4s linear infinite reverse;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -505,10 +1082,34 @@ h1, h2, h3 {
 /* CHANGED: 响应式适配 */
 @media (max-width: 480px) {
   .page { padding: 22px 14px 40px; }
-  .card { padding: 20px 16px !important; }
+  .card:not(.tab-nav-card):not(.chart-card) { padding: 20px 16px; }
   .form-group { margin-bottom: 18px; }
-  #tab-content { font-size: 14px; }
+  #tab-content { font-size: 15px; }
   #tab-content h2 { font-size: 18px; }
+  #tab-content h3 { font-size: 16px; }
+  #tab-content p { font-size: 15px; }
+  #tab-content blockquote { font-size: 16px; padding: 20px 16px; }
+  /* CHANGED: 移动端星盘格子缩小 */
+  .star-chart { padding: 6px; gap: 1px; border-radius: 12px; }
+  .chart-cell { padding: 4px 2px; border-radius: 6px; min-height: 62px; }
+  .chart-cell .cell-name { font-size: 9px; }
+  .chart-cell .cell-star { font-size: 10px; }
+  .chart-cell .cell-second-star { font-size: 9px; }
+  .chart-cell .cell-brightness { font-size: 8px; }
+  .chart-cell .cell-mutagen { font-size: 8px; }
+  .chart-center { padding: 6px; border-radius: 8px; }
+  .chart-center .center-star { font-size: 14px; }
+  .chart-center .center-meta { font-size: 10px; }
+  .chart-center .center-lords { display: none; }
+  .social-proof { font-size: 10px; }
+  .urgency-bar { font-size: 11px; padding: 7px 10px; }
+  /* CHANGED: 移动端信任/流程条适配 */
+  .trust-bar { gap: 4px; }
+  .trust-col span { font-size: 10px; }
+  .trust-icon { width: 14px; height: 14px; }
+  .process-bar { gap: 6px; margin-top: 16px; }
+  .process-arrow { width: 22px; margin-top: 11px; }
+  .process-label { font-size: 10px; }
 }
 
 /* CHANGED: 无障碍支持 — 尊重用户的减少动效偏好（UX 最佳实践高优先级） */
@@ -570,7 +1171,7 @@ h1, h2, h3 {
   <div class="card fade-in-up delay-1" style="padding:28px 22px;">
     <!-- 日期：年月日三下拉 -->
     <div class="form-group">
-      <label class="form-label">📅 公历出生日期</label>
+      <label class="form-label">公历出生日期</label>
       <div style="display:flex;gap:10px;">
         <select id="birthYear" class="form-select" style="flex:2;" onchange="updateDays()"></select>
         <select id="birthMonth" class="form-select" style="flex:1;" onchange="updateDays()"></select>
@@ -580,14 +1181,14 @@ h1, h2, h3 {
 
     <!-- 时间 -->
     <div class="form-group">
-      <label class="form-label">⏰ 出生时间</label>
+      <label class="form-label">出生时间</label>
       <input type="time" id="birthTime" class="form-input" value="14:30" style="color-scheme:dark;">
       <p style="font-size:12px;color:var(--text-tertiary);margin-top:5px;" id="timeHint">输入具体时间（如 14:30），系统将自动换算为时辰</p>
     </div>
 
     <!-- 性别 -->
     <div class="form-group">
-      <label class="form-label">👤 性别</label>
+      <label class="form-label">性别</label>
       <div class="gender-toggle">
         <button class="gender-btn active" data-gender="男" onclick="selectGender(this)">♂ 男</button>
         <button class="gender-btn" data-gender="女" onclick="selectGender(this)">♀ 女</button>
@@ -596,7 +1197,7 @@ h1, h2, h3 {
 
     <!-- 城市（始终可见） -->
     <div class="form-group">
-      <label class="form-label">🏙️ 出生城市（真太阳时校正）</label>
+      <label class="form-label">出生城市（真太阳时校正）</label>
       <input type="text" id="city" class="form-input" placeholder="如：北京、上海、成都...（留空=北京时间）" list="cityList" autocomplete="off">
       <datalist id="cityList"></datalist>
       <p style="font-size:12px;color:var(--text-tertiary);margin-top:5px;">根据城市经度自动校正真太阳时，确保时辰精准</p>
@@ -617,41 +1218,85 @@ h1, h2, h3 {
     <p id="quota-badge" style="font-size:12px;color:var(--text-tertiary);text-align:center;margin-top:8px;">🎫 今日剩余：— / 5 次</p>
   </div>
 
-  <!-- CHANGED: 深度解读专区卡片应用新材质与交错动画 -->
-  <div style="width:100%;max-width:420px;margin-top:28px;" class="fade-in-up delay-3">
-    <h3 style="font-size:16px;color:var(--gold-light);text-align:center;margin-bottom:14px;font-family:'Noto Serif SC',serif;">🔮 深度解读专区 <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;font-family:'Noto Sans SC',sans-serif;">· 付费专题</span></h3>
-    <div id="premium-cards" style="display:flex;flex-direction:column;gap:12px;">
-      <!-- 十年大限 -->
-      <div class="card premium-card" style="border:1px solid rgba(124,58,237,0.4);background:linear-gradient(135deg,rgba(124,58,237,0.06),rgba(124,58,237,0.02));">
-        <div style="padding:16px;">
-          <div style="display:flex;justify-content:space-between;align-items:start;">
-            <div><span style="font-size:16px;font-weight:600;color:var(--text-primary);">📜 十年大限</span><p style="font-size:13px;color:var(--text-secondary);margin:5px 0 0;">看清未来40年人生节奏，把握每个关键转折</p></div>
-            <span style="font-size:18px;font-weight:700;color:var(--gold-light);white-space:nowrap;">¥29.9</span>
-          </div>
-          <button class="btn-primary" style="margin-top:14px;font-size:14px;padding:11px;animation:none;" onclick="startPremium('decade')">✨ 立即解锁（消耗3次）</button>
-        </div>
+  <!-- CHANGED: 信任 + 流程信息条，降低付费决策门槛 -->
+  <div class="trust-process-wrapper">
+    <div class="trust-bar fade-in-up delay-2">
+      <div class="trust-col">
+        <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="4" height="10" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="2" width="4" height="18" rx="1"/></svg>
+        <span>累计解读 50,000+ 命盘</span>
       </div>
-      <!-- 双人合盘 -->
-      <div class="card premium-card" style="border:1px solid rgba(212,168,83,0.4);background:linear-gradient(135deg,rgba(212,168,83,0.06),rgba(212,168,83,0.02));">
-        <div style="padding:16px;">
-          <div style="display:flex;justify-content:space-between;align-items:start;">
-            <div><span style="font-size:16px;font-weight:600;color:var(--text-primary);">💞 双人合盘</span><p style="font-size:13px;color:var(--text-secondary);margin:5px 0 0;">洞悉你们之间的星辰密码，找到最舒服的相处方式</p></div>
-            <span style="font-size:18px;font-weight:700;color:var(--gold-light);white-space:nowrap;">¥39.9</span>
-          </div>
-          <button class="btn-primary" style="margin-top:14px;font-size:14px;padding:11px;animation:none;" onclick="startPremium('synastry')">✨ 立即解锁（消耗4次）</button>
-        </div>
+      <div class="trust-divider"></div>
+      <div class="trust-col">
+        <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        <span>真太阳时精准校正</span>
       </div>
-      <!-- 流月精批 -->
-      <div class="card premium-card" style="border:1px solid rgba(59,130,246,0.4);background:linear-gradient(135deg,rgba(59,130,246,0.06),rgba(59,130,246,0.02));">
-        <div style="padding:16px;">
-          <div style="display:flex;justify-content:space-between;align-items:start;">
-            <div><span style="font-size:16px;font-weight:600;color:var(--text-primary);">📅 流月精批</span><p style="font-size:13px;color:var(--text-secondary);margin:5px 0 0;">未来365天逐月导航，不错过每一个高光时刻</p></div>
-            <span style="font-size:18px;font-weight:700;color:var(--gold-light);white-space:nowrap;">¥19.9</span>
-          </div>
-          <button class="btn-primary" style="margin-top:14px;font-size:14px;padding:11px;animation:none;" onclick="startPremium('monthly')">✨ 立即解锁（消耗2次）</button>
-        </div>
+      <div class="trust-divider"></div>
+      <div class="trust-col">
+        <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>数据不留存</span>
       </div>
     </div>
+
+    <div class="process-bar fade-in-up delay-3">
+      <div class="process-step">
+        <div class="process-circle">1</div>
+        <span class="process-label">输入生辰</span>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-circle">2</div>
+        <span class="process-label">AI 推演</span>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-circle">3</div>
+        <span class="process-label">专属报告</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGED: 深度解读专区改造成套餐选择区 — 主推拔高 + 社会认同 + 紧迫感 -->
+  <div class="premium-section fade-in-up delay-3">
+    <div class="premium-header">
+      <h3 class="premium-title">深度解读 · 付费专题</h3>
+      <span class="hot-badge">🔥 本周热门</span>
+    </div>
+
+    <div id="premium-cards">
+      <!-- 流月精批（入门） -->
+      <div class="premium-card">
+        <div class="premium-icon" style="font-size:24px;color:var(--gold-light);">✦</div>
+        <div class="premium-name">流月精批</div>
+        <div class="premium-benefits"><span class="benefit-tag">未来12月</span><span class="benefit-tag">逐月导航</span><span class="benefit-tag">趋吉避凶</span></div>
+        <div class="premium-price">¥19.9</div>
+        <button class="btn-primary premium-btn" onclick="startPremium('monthly')">立即解锁（消耗2次）</button>
+      </div>
+
+      <!-- 双人合盘（主推） -->
+      <div class="premium-card featured">
+        <div class="premium-badge">85% 用户选择</div>
+        <div class="premium-icon" style="font-size:24px;color:var(--gold-light);">♡</div>
+        <div class="premium-name">双人合盘</div>
+        <div class="premium-benefits"><span class="benefit-tag">缘分契合</span><span class="benefit-tag">相处密码</span><span class="benefit-tag">关系走向</span></div>
+        <div class="premium-price featured-price">
+          <span class="original-price">¥59.9</span>
+          <span class="current-price">¥39.9</span>
+        </div>
+        <button class="btn-primary premium-btn featured-btn" onclick="startPremium('synastry')">立即解锁 · 限时优惠</button>
+      </div>
+
+      <!-- 十年大限 -->
+      <div class="premium-card">
+        <div class="premium-icon" style="font-size:24px;color:var(--gold-light);">◈</div>
+        <div class="premium-name">十年大限</div>
+        <div class="premium-benefits"><span class="benefit-tag">未来40年</span><span class="benefit-tag">关键转折</span><span class="benefit-tag">节奏把控</span></div>
+        <div class="premium-price">¥29.9</div>
+        <button class="btn-primary premium-btn" onclick="startPremium('decade')">立即解锁（消耗3次）</button>
+      </div>
+    </div>
+
+    <div class="social-proof">已有 12,847 人解锁深度解读 · ⭐ 4.8 平均评分</div>
+    <div class="urgency-bar">🎁 新用户首单立减 30% · 今日 23:59 截止</div>
   </div>
 </div>
 
@@ -665,7 +1310,7 @@ h1, h2, h3 {
   </div>
 
   <!-- CHANGED: 星盘图卡片应用新材质与入场动画 -->
-  <div class="card fade-in-up delay-1" style="padding:16px 12px;margin-bottom:16px;">
+  <div class="card chart-card fade-in-up delay-1" style="padding:16px 12px;margin-bottom:16px;">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 4px;">
       <span style="font-size:18px;">🔮</span>
       <span style="font-size:15px;font-weight:600;color:var(--gold-light);font-family:'Noto Serif SC',serif;">星盘总览</span>
@@ -678,13 +1323,13 @@ h1, h2, h3 {
   </div>
 
   <!-- CHANGED: Tab 导航栏使用新毛玻璃卡片 -->
-  <div class="card fade-in-up delay-2" style="padding:4px;margin-bottom:14px;overflow:hidden;">
+  <div class="card tab-nav-card fade-in-up delay-2" style="padding:4px;margin-bottom:14px;overflow:hidden;">
     <div id="tab-nav" style="display:flex;gap:0;">
-      <button class="tab-btn active" data-module="overview" onclick="switchTab('overview')">🏮 概览</button>
-      <button class="tab-btn" data-module="character" onclick="switchTab('character')">🎭 性格</button>
-      <button class="tab-btn" data-module="career" onclick="switchTab('career')">💼 事业</button>
-      <button class="tab-btn" data-module="love" onclick="switchTab('love')">💕 感情</button>
-      <button class="tab-btn" data-module="year" onclick="switchTab('year')">🌊 流年</button>
+      <button class="tab-btn active" data-module="overview" onclick="switchTab('overview')">概览</button>
+      <button class="tab-btn" data-module="character" onclick="switchTab('character')">性格</button>
+      <button class="tab-btn" data-module="career" onclick="switchTab('career')">事业</button>
+      <button class="tab-btn" data-module="love" onclick="switchTab('love')">感情</button>
+      <button class="tab-btn" data-module="year" onclick="switchTab('year')">流年</button>
     </div>
   </div>
 
@@ -694,6 +1339,11 @@ h1, h2, h3 {
       <div class="loading-spinner"></div>
       <p style="color:var(--text-secondary);font-size:14px;">AI 正在推演你的命盘...</p>
     </div>
+  </div>
+
+  <!-- CHANGED: 高级功能内容区（解锁后展示） -->
+  <div class="advanced-card card" style="padding:20px 18px;margin-bottom:16px;display:none;">
+    <div id="advanced-content"></div>
   </div>
 
   <!-- CHANGED: 免责声明 -->
@@ -714,6 +1364,65 @@ h1, h2, h3 {
     <p id="purchase-subtitle" style="font-size:13px;color:var(--text-secondary);text-align:center;">今日免费额度已用完 —— 但星辰不会等待</p>
     <div id="purchase-packages" style="margin:16px 0;"></div>
     <button class="modal-close" onclick="document.getElementById('purchase-modal').classList.remove('active')">暂不购买，明天再来</button>
+  </div>
+</div>
+
+<!-- CHANGED: 解锁确认弹窗 -->
+<div class="modal-overlay" id="unlock-modal">
+  <div class="modal-card" style="padding:24px 20px;">
+    <h3 id="unlock-title"></h3>
+    <p id="unlock-desc" style="font-size:13px;color:var(--text-secondary);text-align:center;"></p>
+    <button class="btn-primary" onclick="doUnlock('confirm')">确认解锁</button>
+    <button class="modal-close" onclick="closeModal()">取消</button>
+  </div>
+</div>
+
+<!-- CHANGED: 双人合盘表单弹窗 -->
+<div class="modal-overlay" id="hepan-form-modal">
+  <div class="modal-card" style="padding:24px 20px;max-height:90vh;overflow-y:auto;">
+    <h3>💞 对方信息</h3>
+
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label">出生日期</label>
+      <div style="display:flex;gap:10px;">
+        <select id="hp-year" class="form-select" style="flex:2;"></select>
+        <select id="hp-month" class="form-select" style="flex:1;"></select>
+        <select id="hp-day" class="form-select" style="flex:1;"></select>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label">出生时间</label>
+      <input type="time" id="hp-time" class="form-input" value="14:30" style="color-scheme:dark;">
+    </div>
+
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label">性别</label>
+      <div style="display:flex;gap:10px;">
+        <button class="gender-btn" data-g="男" onclick="selectHpGender(this)">♂ 男</button>
+        <button class="gender-btn active" data-g="女" onclick="selectHpGender(this)">♀ 女</button>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label">出生城市（真太阳时校正）</label>
+      <input type="text" id="hp-city" class="form-input" placeholder="如：北京、上海…（留空=北京时间）">
+    </div>
+
+    <div class="form-group" style="margin-bottom:20px;">
+      <label class="form-label">关系</label>
+      <select id="hp-relation" class="form-select">
+        <option value="情侣" selected>情侣</option>
+        <option value="夫妻">夫妻</option>
+        <option value="暗恋">暗恋</option>
+        <option value="朋友">朋友</option>
+        <option value="同事">同事</option>
+        <option value="家人">家人</option>
+      </select>
+    </div>
+
+    <button class="btn-primary" onclick="submitHepan()">开始合盘推演</button>
+    <button class="modal-close" onclick="document.getElementById('hepan-form-modal').classList.remove('active')">取消</button>
   </div>
 </div>
 
@@ -872,7 +1581,16 @@ function goHome() {
       <p style="color:var(--text-secondary);font-size:14px;">AI 正在推演你的命盘...</p>
     </div>
   `;
+  document.getElementById('tab-content').classList.remove('loaded');
   document.getElementById('reading-disclaimer').style.display = 'none';
+  // 恢复付费阅读可能隐藏的界面元素，防止状态泄漏
+  document.getElementById('tab-nav').style.display = '';
+  document.getElementById('tab-content').style.display = '';
+  const advCard = document.querySelector('.advanced-card');
+  if (advCard) advCard.style.display = 'none';
+  const chartCard = document.querySelector('.star-chart')?.parentElement;
+  if (chartCard) chartCard.style.display = '';
+  document.getElementById('premium-badge').style.display = 'none';
   showPage('page-home');
 }
 
@@ -897,7 +1615,16 @@ async function submitForm() {
         <p style="color:var(--text-secondary);font-size:14px;">AI 正在推演你的命盘...</p>
       </div>
     `;
+    document.getElementById('tab-content').classList.remove('loaded');
     document.getElementById('reading-disclaimer').style.display = 'none';
+    // 恢复付费阅读可能隐藏的界面元素，防止状态泄漏
+    document.getElementById('tab-nav').style.display = '';
+    document.getElementById('tab-content').style.display = '';
+    const advCard = document.querySelector('.advanced-card');
+    if (advCard) advCard.style.display = 'none';
+    const chartCard = document.querySelector('.star-chart')?.parentElement;
+    if (chartCard) chartCard.style.display = '';
+    document.getElementById('premium-badge').style.display = 'none';
     // 提交参数存起来供 tab 使用
     submitParams = { solar_date, time, city, gender: selectedGender };
     // 默认加载概览
@@ -910,45 +1637,135 @@ async function submitForm() {
 // ============================================================
 function renderStarChart(data) {
   const container = document.getElementById('starChart');
-  // 按 iztro 顺序：财帛,子女,夫妻,兄弟,命宫,父母,福德,田宅,官禄,仆役,迁移,疾厄
-  // 映射到 4x3 格子，命宫在中间偏下位置
+  // CHANGED: 按 iztro 顺序映射到传统方形盘面外圈 12 格
   const layoutOrder = ['财帛宫','子女宫','夫妻宫','兄弟宫','命宫','父母宫','福德宫','田宅宫','官禄宫','交友宫','迁移宫','疾厄宫'];
   const palaceMap = {};
   for (const p of data.allPalaces) { palaceMap[p.name] = p; }
 
-  container.innerHTML = '';
-  for (const name of layoutOrder) {
-    const p = palaceMap[name];
-    if (!p) { container.appendChild(document.createElement('div')); continue; }
+  // CHANGED: 外圈 12 格位置映射（顺时针：命宫→兄弟→夫妻→子女→财帛→疾厄→迁移→交友→官禄→田宅→福德→父母）
+  const positions = [
+    { row: 4, col: 1 }, // 财帛宫（第5宫）
+    { row: 4, col: 2 }, // 子女宫（第4宫）
+    { row: 4, col: 3 }, // 夫妻宫（第3宫）
+    { row: 4, col: 4 }, // 兄弟宫（第2宫）
+    { row: 3, col: 4 }, // 命宫（第1宫，右侧中间偏下，传统命盘位置）
+    { row: 2, col: 4 }, // 父母宫（第12宫，右侧中间偏上）
+    { row: 1, col: 4 }, // 福德宫（第11宫，右上）
+    { row: 1, col: 3 }, // 田宅宫（第10宫）
+    { row: 1, col: 2 }, // 官禄宫（第9宫）
+    { row: 1, col: 1 }, // 交友宫（第8宫，左上）
+    { row: 2, col: 1 }, // 迁移宫（第7宫）
+    { row: 3, col: 1 }, // 疾厄宫（第6宫）
+  ];
 
+  // CHANGED: 星曜色彩分类（支持括号说明）
+  function classifyStar(name) {
+    if (!name) return '';
+    const n = name.replace(/[（(].*?[）)]/g, '').trim();
+    if (['紫微','天府','太阳','太阴'].includes(n)) return 'star-royal';
+    if (['贪狼','廉贞','文昌','文曲'].includes(n)) return 'star-romance';
+    if (['七杀','破军','擎羊','陀罗','火星','铃星','地空','地劫'].includes(n)) return 'star-kill';
+    if (['左辅','右弼','天魁','天钺'].includes(n)) return 'star-aid';
+    return '';
+  }
+
+  // CHANGED: 四化对应 class
+  function mutagenClass(m) {
+    return { '禄': 'hua-lu', '权': 'hua-quan', '科': 'hua-ke', '忌': 'hua-ji' }[m] || 'cell-mutagen';
+  }
+
+  // CHANGED: 宫位底色语义判断
+  function judgePalace(p) {
+    if (!p || p.isEmpty) return '';
+    let auspicious = false, affliction = false, killCount = 0;
+    for (const s of p.majorStars) {
+      if (!s) continue;
+      if (s.mutagen === '禄' || s.mutagen === '科') auspicious = true;
+      if (s.mutagen === '忌') affliction = true;
+      const cls = classifyStar(s.name);
+      if (cls === 'star-kill') killCount++;
+      if (cls === 'star-aid') auspicious = true;
+    }
+    if (killCount >= 2) affliction = true;
+    if (affliction) return 'cell-affliction';
+    if (auspicious) return 'cell-auspicious';
+    return '';
+  }
+
+  container.innerHTML = '';
+  container.classList.add('chart-board');
+
+  // CHANGED: 生成外圈 12 宫
+  layoutOrder.forEach((name, idx) => {
+    const p = palaceMap[name];
+    const pos = positions[idx];
     const cell = document.createElement('div');
-    cell.className = 'chart-cell';
-    if (p.name === '命宫') cell.classList.add('ming');
+    const palaceClass = (p && !p.isEmpty) ? judgePalace(p) : '';
+    cell.className = 'chart-cell' + (name === '命宫' ? ' ming' : '') + (palaceClass ? ' ' + palaceClass : '');
+    cell.style.gridRow = String(pos.row);
+    cell.style.gridColumn = String(pos.col);
+
+    if (!p) {
+      cell.innerHTML = '<div class="cell-name">' + name + '</div><div class="cell-star"><span class="dim">-</span></div>';
+      container.appendChild(cell);
+      return;
+    }
 
     const nameDiv = document.createElement('div');
     nameDiv.className = 'cell-name';
-    nameDiv.textContent = p.name + (p.isBodyPalace ? ' ★' : '');
+    nameDiv.textContent = p.name + (p.isBodyPalace ? ' · 身' : '');
 
     const starDiv = document.createElement('div');
     starDiv.className = 'cell-star';
     if (p.isEmpty) {
       starDiv.innerHTML = '<span class="dim">空宫</span>';
     } else {
-      const stars = p.majorStars.map(s => {
-        let cls = '';
-        if (s.brightness === '陷' || s.brightness === '不') cls = 'dim';
-        let txt = s.name;
-        if (s.brightness) txt += `<br><span style="font-size:10px;color:var(--text-tertiary);">${s.brightness}</span>`;
-        if (s.mutagen) txt += `<br><span style="font-size:10px;color:var(--gold-light);">化${s.mutagen}</span>`;
-        return `<span class="${cls}">${txt}</span>`;
-      });
-      starDiv.innerHTML = stars.join('<br>');
+      const renderStar = (s, cls) => {
+        if (!s) return '';
+        let starCls = cls + ' ' + classifyStar(s.name);
+        if (s.brightness === '陷' || s.brightness === '不') starCls += ' dim';
+        let html = '<div class="' + starCls.trim() + '">' + s.name;
+        if (s.brightness) html += '<span class="cell-brightness">' + s.brightness + '</span>';
+        html += '</div>';
+        if (s.mutagen) {
+          html += '<span class="' + mutagenClass(s.mutagen) + '">' + s.mutagen + '</span>';
+        }
+        return html;
+      };
+      const first = p.majorStars[0];
+      const second = p.majorStars[1];
+      starDiv.innerHTML = renderStar(first, 'cell-main-star') + renderStar(second, 'cell-second-star');
     }
 
     cell.appendChild(nameDiv);
     cell.appendChild(starDiv);
     container.appendChild(cell);
-  }
+  });
+
+  // CHANGED: 中宫 — 命主核心信息
+  const mingPalace = palaceMap['命宫'];
+  const bodyPalace = data.allPalaces.find(p => p.isBodyPalace);
+  const center = document.createElement('div');
+  center.className = 'chart-center';
+  center.style.gridRow = '2 / 4';
+  center.style.gridColumn = '2 / 4';
+
+  const mingStarName = mingPalace && mingPalace.majorStars && mingPalace.majorStars[0]
+    ? mingPalace.majorStars[0].name : '—';
+  const bodyStarName = bodyPalace && bodyPalace.majorStars && bodyPalace.majorStars[0]
+    ? bodyPalace.majorStars[0].name : '—';
+
+  // CHANGED: 中宫主星也应用星曜色彩编码
+  const mingStarClass = classifyStar(mingStarName);
+  center.innerHTML =
+    '<div class="center-star ' + mingStarClass + '">' + mingStarName + '</div>' +
+    '<div class="center-meta">' + (data.basic.fiveElements || '') + '</div>' +
+    '<div class="center-lords">' +
+      '<span>命主 ' + mingStarName + '</span>' +
+      '<span class="center-dot">·</span>' +
+      '<span>身主 ' + bodyStarName + '</span>' +
+    '</div>';
+  container.appendChild(center);
 
   // 基本信息
   const b = data.basic;
@@ -979,11 +1796,13 @@ async function switchTab(module) {
   if (tabCache[module]) {
     content.innerHTML = tabCache[module];
     content.classList.remove('typing-cursor');
+    content.classList.add('loaded');
     return;
   }
 
   // 显示 loading
   const moduleNames = { overview: '命盘概览', character: '性格底色', career: '事业财运', love: '感情婚姻', year: '近期流年' };
+  content.classList.remove('loaded');
   content.innerHTML = `
     <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;">
       <div class="loading-spinner"></div>
@@ -1006,10 +1825,10 @@ async function switchTab(module) {
       try { err = JSON.parse(errText); } catch { err = { error: '未知错误' }; }
       if (response.status === 429) {
         const canBuy = err.canPurchase !== false;
-        content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#ff6b6b;">🚫 ${err.error || '今日额度已用完'}</p>${canBuy ? '<button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.12);border:1px solid var(--gold);border-radius:12px;color:var(--gold-light);font-size:14px;cursor:pointer;transition:all 0.3s ease;">💎 立即购买次数</button>' : ''}</div>`;
+        content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#e88080;">🚫 ${err.error || '今日额度已用完'}</p>${canBuy ? '<button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.12);border:1px solid var(--gold);border-radius:12px;color:var(--gold-light);font-size:14px;cursor:pointer;transition:all 0.3s ease;">💎 立即购买次数</button>' : ''}</div>`;
         refreshQuota();
       } else {
-        content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ ${err.error || errText}</p>`;
+        content.innerHTML = `<p style="color:#e88080;text-align:center;">❌ ${err.error || errText}</p>`;
       }
       return;
     }
@@ -1031,6 +1850,7 @@ async function switchTab(module) {
         try {
           const msg = JSON.parse(trimmed.slice(6));
           if (msg.type === 'chart') {
+            content.classList.remove('loaded');
             if (!chartInfo) {
               chartInfo = msg.data;
               renderStarChart(chartInfo);
@@ -1046,20 +1866,21 @@ async function switchTab(module) {
             content.classList.remove('typing-cursor');
             const finalHtml = marked.parse(fullText);
             content.innerHTML = finalHtml;
+            content.classList.add('loaded');
             tabCache[module] = finalHtml;
             // 标记已加载
             const btn = document.querySelector(`.tab-btn[data-module="${module}"]`);
             if (btn) btn.classList.add('loaded');
             refreshQuota();
           } else if (msg.type === 'error') {
-            content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ ${msg.message}</p>`;
+            content.innerHTML = `<p style="color:#e88080;text-align:center;">❌ ${msg.message}</p>`;
             refreshQuota();
           }
         } catch {}
       }
     }
   } catch (e) {
-    content.innerHTML = `<p style="color:#ff6b6b;text-align:center;">❌ 网络错误: ${e.message}</p>`;
+    content.innerHTML = `<p style="color:#e88080;text-align:center;">❌ 网络错误: ${e.message}</p>`;
   }
 }
 
@@ -1119,7 +1940,7 @@ async function refreshQuota() {
     const paid = q.paidRemaining || 0;
     if (total <= 0) {
       badge.innerHTML = '🚫 今日额度已用完，<span style="color:var(--gold-light);cursor:pointer;text-decoration:underline;" onclick="showPurchaseModal()">💎 立即购买</span>';
-      badge.style.color = '#ff6b6b';
+      badge.style.color = '#e88080';
     } else if (paid > 0) {
       badge.innerHTML = `🎫 免费${q.freeRemaining ?? (q.limit-q.used)}次 + 💎 <span style="color:var(--gold-light);">付费${paid}次</span>`;
       badge.style.color = '#b0a8c8';
@@ -1234,7 +2055,7 @@ async function doAdvancedStream(module, extraData) {
 
   try {
     const response = await fetch(urls[module], { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (!response.ok) { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ 请求失败</p>'; return; }
+    if (!response.ok) { content.innerHTML = '<p style="color:#e88080;text-align:center;">❌ 请求失败</p>'; return; }
     let buf = '', fullText = '';
     const reader = response.body.getReader(), decoder = new TextDecoder();
     while (true) {
@@ -1247,11 +2068,11 @@ async function doAdvancedStream(module, extraData) {
           const m = JSON.parse(t.slice(6));
           if (m.type === 'text') { fullText += m.content; content.innerHTML = marked.parse(fullText); content.classList.add('typing-cursor'); }
           else if (m.type === 'done') { content.classList.remove('typing-cursor'); content.innerHTML = marked.parse(fullText); }
-          else if (m.type === 'error') { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ '+m.message+'</p>'; }
+          else if (m.type === 'error') { content.innerHTML = '<p style="color:#e88080;text-align:center;">❌ '+m.message+'</p>'; }
         } catch {}
       }
     }
-  } catch (e) { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ 网络错误</p>'; }
+  } catch (e) { content.innerHTML = '<p style="color:#e88080;text-align:center;">❌ 网络错误</p>'; }
 }
 
 // ============================================================
@@ -1411,7 +2232,7 @@ async function doPremiumStream(readingType, extraData) {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     }).then(async response => {
-      if (!response.ok) { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ 请求失败</p>'; return; }
+      if (!response.ok) { content.innerHTML = '<p style="color:#e88080;text-align:center;">❌ 请求失败</p>'; return; }
       let buf = '', fullText = '';
       const reader = response.body.getReader(), decoder = new TextDecoder();
       while (true) {
@@ -1426,15 +2247,15 @@ async function doPremiumStream(readingType, extraData) {
             else if (m.type === 'done') { content.classList.remove('typing-cursor'); content.innerHTML = marked.parse(fullText); document.getElementById('reading-disclaimer').style.display = 'block'; refreshQuota(); }
             else if (m.type === 'error') {
               if (m.code === 'INSUFFICIENT_PAID') {
-                content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#ff6b6b;">🚫 ${m.message}</p><button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.12);border:1px solid var(--gold);border-radius:12px;color:var(--gold-light);font-size:14px;cursor:pointer;transition:all 0.3s ease;">💎 立即购买次数</button></div>`;
+                content.innerHTML = `<div style="text-align:center;padding:20px 0;"><p style="color:#e88080;">🚫 ${m.message}</p><button onclick="showPurchaseModal()" style="margin-top:12px;padding:10px 24px;background:rgba(212,168,83,0.12);border:1px solid var(--gold);border-radius:12px;color:var(--gold-light);font-size:14px;cursor:pointer;transition:all 0.3s ease;">💎 立即购买次数</button></div>`;
               } else {
-                content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ '+m.message+'</p>';
+                content.innerHTML = '<p style="color:#e88080;text-align:center;">❌ '+m.message+'</p>';
               }
             }
           } catch {}
         }
       }
-    }).catch(e => { content.innerHTML = '<p style="color:#ff6b6b;text-align:center;">❌ 网络错误</p>'; });
+    }).catch(e => { content.innerHTML = '<p style="color:#e88080;text-align:center;">❌ 网络错误</p>'; });
   });
 }
 
