@@ -11,6 +11,10 @@ const PRODUCTS = {
   '10次包':  { count: 10,  price: 9.9,  name: '10次包', hot: false },
   '30次包':  { count: 30,  price: 19.9, name: '30次包', hot: true  },
   '100次包': { count: 100, price: 49.9, name: '100次包', hot: false },
+  // 会员订阅产品
+  'monthly':  { type: 'membership', duration: 30,   price: 29,  name: '月卡' },
+  'yearly':   { type: 'membership', duration: 365,  price: 199, name: '年卡' },
+  'lifetime': { type: 'membership', duration: 99999, price: 599, name: '终身卡' },
 };
 
 // ============================================================
@@ -139,8 +143,25 @@ function paymentCallback(req, res) {
     if (order.status === 'expired') return res.status(400).json({ error: '订单已过期，请重新下单' });
     if (order.status === 'paid') return res.status(400).json({ error: '订单已支付，无需重复支付' });
 
-    // 标记已支付并发放次数
+    // 标记已支付
     order.status = 'paid';
+
+    // 会员类型产品：激活会员订阅
+    const product = PRODUCTS[order.productType];
+    if (product && product.type === 'membership') {
+      const membership = activateMembership(order.usedBy, order.productType);
+      console.log(`  ✅ 会员支付成功: ${orderId} | ${product.name} | 到期 ${new Date(membership.expireAt).toLocaleDateString('zh-CN')}`);
+      res.json({
+        success: true,
+        message: `支付成功！${product.name}已激活`,
+        orderId,
+        productType: order.productType,
+        membership: getMembershipStatus(order.usedBy),
+      });
+      return;
+    }
+
+    // 次数包产品：发放付费次数
     const totalPaid = addPaidQuota(order.usedBy, order.count);
 
     console.log(`  ✅ 支付成功: ${orderId} | +${order.count}次 | 共计 ${totalPaid} 次`);
@@ -157,15 +178,72 @@ function paymentCallback(req, res) {
   }
 }
 
+// ============================================================
+// 会员订阅体系
+// ============================================================
+const memberships = {}; // { clientId: { type, activatedAt, expireAt } }
+
+/** 激活会员订阅 */
+function activateMembership(clientId, productType) {
+  const product = PRODUCTS[productType];
+  if (!product || product.type !== 'membership') return null;
+
+  const now = Date.now();
+  const existing = memberships[clientId];
+
+  // 如果已有有效会员，在到期时间基础上续期；否则从现在开始
+  const baseTime = (existing && existing.expireAt > now) ? existing.expireAt : now;
+  const expireAt = baseTime + product.duration * 24 * 60 * 60 * 1000;
+
+  memberships[clientId] = {
+    type: productType,
+    typeName: product.name,
+    activatedAt: now,
+    expireAt,
+  };
+
+  console.log(`  👑 会员激活: ${clientId} | ${product.name} | 到期 ${new Date(expireAt).toLocaleDateString('zh-CN')}`);
+  return memberships[clientId];
+}
+
+/** 获取会员状态 */
+function getMembershipStatus(clientId) {
+  const m = memberships[clientId];
+  if (!m) return { active: false, type: null, expireAt: null, daysLeft: 0 };
+
+  const now = Date.now();
+  const active = m.expireAt > now;
+  const daysLeft = active ? Math.ceil((m.expireAt - now) / (24 * 60 * 60 * 1000)) : 0;
+
+  return {
+    active,
+    type: m.type,
+    typeName: m.typeName || PRODUCTS[m.type]?.name || '会员',
+    expireAt: m.expireAt,
+    daysLeft,
+  };
+}
+
+/** 会员检查（中间件风格）：返回是否为有效会员 */
+function isMember(req) {
+  const clientId = getClientId(req);
+  return getMembershipStatus(clientId).active;
+}
+
+/** GET /api/membership/status — 查询当前会员状态 */
+function membershipStatus(req, res) {
+  const clientId = getClientId(req);
+  res.json(getMembershipStatus(clientId));
+}
+
 /** GET /api/products — 查询产品列表 */
 function getProducts(_req, res) {
-  const list = Object.entries(PRODUCTS).map(([key, p]) => ({
-    productType: key,
-    name: p.name,
-    count: p.count,
-    price: p.price,
-    hot: p.hot,
-  }));
+  const list = Object.entries(PRODUCTS).map(([key, p]) => {
+    if (p.type === 'membership') {
+      return { productType: key, name: p.name, type: 'membership', duration: p.duration, price: p.price };
+    }
+    return { productType: key, name: p.name, count: p.count, price: p.price, hot: p.hot };
+  });
   res.json({ products: list });
 }
 
@@ -184,6 +262,11 @@ module.exports = {
   consumePaidQuota,
   consumeMultiplePaidQuota,
   getClientId,
+  // 会员相关
+  activateMembership,
+  getMembershipStatus,
+  isMember,
+  membershipStatus,
   // 路由处理函数
   createOrder,
   queryOrder,

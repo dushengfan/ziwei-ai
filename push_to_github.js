@@ -5,22 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const USERNAME = 'dushengfan';
-// 从本地 .token 文件读取（该文件已在 .gitignore 中，不会被提交到 GitHub）
-let TOKEN;
-try {
-  TOKEN = fs.readFileSync(path.join(__dirname, '.token'), 'utf-8').trim();
-} catch {
-  console.error('❌ 请在项目根目录创建 .token 文件，写入你的 GitHub Token');
-  console.error('   或设置环境变量: GITHUB_TOKEN');
-  process.exit(1);
-}
-if (!TOKEN) {
-  TOKEN = process.env.GITHUB_TOKEN || '';
-  if (!TOKEN) {
-    console.error('❌ 未找到 Token！请创建 .token 文件或设置 GITHUB_TOKEN 环境变量');
-    process.exit(1);
-  }
-}
+const TOKEN = process.env.GITHUB_TOKEN || '';
 const REPO = 'ziwei-ai';
 const BASE = 'https://api.github.com';
 const HEADERS = {

@@ -21,21 +21,33 @@ const payment = require('./payment');
 const DAILY_LIMIT = 5;
 let quota = { date: '', used: 0 };
 
+// AI 聊天独立配额（免费 3 次/天，用完后消耗付费次数）
+const DAILY_CHAT_LIMIT = 3;
+let chatQuota = { date: '', used: 0 };
+
 function getQuota(req) {
   const today = new Date().toISOString().slice(0, 10);
   if (quota.date !== today) { quota = { date: today, used: 0 }; }
+  if (chatQuota.date !== today) { chatQuota = { date: today, used: 0 }; }
   const clientId = payment.getClientId(req);
   const paid = payment.getPaidQuota(clientId);
+  const membership = payment.getMembershipStatus(clientId);
   return {
     date: quota.date, used: quota.used,
     freeLimit: DAILY_LIMIT, freeRemaining: Math.max(0, DAILY_LIMIT - quota.used),
     paidRemaining: paid.paidRemaining || 0,
     totalRemaining: Math.max(0, DAILY_LIMIT - quota.used) + (paid.paidRemaining || 0),
+    chatRemaining: Math.max(0, DAILY_CHAT_LIMIT - chatQuota.used),
+    chatLimit: DAILY_CHAT_LIMIT,
+    membership,
   };
 }
 
-/** 消耗配额：优先免费，再消耗付费 */
+/** 消耗配额：会员跳过免费额度检查；否则优先免费，再消耗付费 */
 function consumeQuota(req) {
+  // 会员用户无限畅读
+  if (payment.isMember(req)) return true;
+
   const q = getQuota(req);
   if (q.totalRemaining <= 0) return false;
   // 优先消耗免费
@@ -45,10 +57,49 @@ function consumeQuota(req) {
   return false;
 }
 
+/** 获取 AI 聊天配额 */
+function getChatQuota(req) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (chatQuota.date !== today) { chatQuota = { date: today, used: 0 }; }
+  const clientId = payment.getClientId(req);
+  const paid = payment.getPaidQuota(clientId);
+  const membership = payment.getMembershipStatus(clientId);
+  const freeRemaining = Math.max(0, DAILY_CHAT_LIMIT - chatQuota.used);
+  return {
+    date: chatQuota.date, used: chatQuota.used,
+    freeLimit: DAILY_CHAT_LIMIT, freeRemaining,
+    paidRemaining: paid.paidRemaining || 0,
+    totalRemaining: freeRemaining + (paid.paidRemaining || 0),
+    membership,
+  };
+}
+
+/** 消耗 AI 聊天配额：会员免费；免费额度优先，再消耗付费次数 */
+function consumeChatQuota(req) {
+  if (payment.isMember(req)) return { ok: true, remaining: -1 }; // 会员无限
+
+  const q = getChatQuota(req);
+  if (q.totalRemaining <= 0) return { ok: false, remaining: 0 };
+  // 优先消耗免费
+  if (q.freeRemaining > 0) {
+    chatQuota.used++;
+    return { ok: true, remaining: Math.max(0, DAILY_CHAT_LIMIT - chatQuota.used) };
+  }
+  // 消耗付费
+  if (q.paidRemaining > 0) {
+    const ok = payment.consumePaidQuota(payment.getClientId(req));
+    return { ok, remaining: ok ? 0 : 0 };
+  }
+  return { ok: false, remaining: 0 };
+}
+
 // GET /api/quota — 前端查询剩余次数
 app.get('/api/quota', (req, res) => {
   res.json(getQuota(req));
 });
+
+// GET /api/membership/status — 查询会员状态
+app.get('/api/membership/status', payment.membershipStatus);
 
 // ============================================================
 // 时间→时辰换算 + 真太阳时校正
@@ -999,6 +1050,133 @@ app.post('/api/reading/premium', async (req, res) => {
   }
 });
 
+// ============================================================
+// API: POST /api/chat — AI 聊天（SSE 流式）
+// ============================================================
+app.post('/api/chat', async (req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
+
+  try {
+    const { message, history, birthInfo } = req.body;
+
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: '消息不能为空' })}\n\n`);
+      return res.end();
+    }
+
+    // 配额检查
+    const cq = consumeChatQuota(req);
+    if (!cq.ok) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: '今日免费聊天额度已用完，请明天再来或购买付费次数包继续提问', code: 'QUOTA_EXCEEDED', needPurchase: true })}\n\n`);
+      return res.end();
+    }
+
+    // 发送配额信息
+    const remaining = cq.remaining === -1 ? -1 : getChatQuota(req).freeRemaining;
+    res.write(`data: ${JSON.stringify({ type: 'quota', remaining })}\n\n`);
+
+    // 构建 System Prompt
+    let systemPrompt, userMessage;
+
+    if (birthInfo && birthInfo.solar_date && birthInfo.time && birthInfo.gender) {
+      // 有生辰信息：排盘注入 prompt
+      try {
+        const { adjustedDate, hourIdx } = timeToShichen(birthInfo.solar_date, birthInfo.time, birthInfo.city || null);
+        const d = new Date(adjustedDate);
+        const dateStr = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+        const a = astro.bySolar(dateStr, hourIdx, birthInfo.gender, true, 'zh-CN');
+        const data = cleanData(a, birthInfo.gender, hourIdx);
+
+        // 构建命盘摘要
+        const mingStars = data.mingPalace?.majorStars?.map(s => `${s.name}(${s.brightness})${s.mutagen ? '化' + s.mutagen : ''}`).join('、') || '空宫';
+        const caiStars = data.allPalaces?.find(p => p.name === '财帛宫')?.majorStars?.map(s => `${s.name}(${s.brightness})`).join('、') || '空宫';
+        const guanStars = data.allPalaces?.find(p => p.name === '官禄宫')?.majorStars?.map(s => `${s.name}(${s.brightness})`).join('、') || '空宫';
+        const fuqiStars = data.allPalaces?.find(p => p.name === '夫妻宫')?.majorStars?.map(s => `${s.name}(${s.brightness})`).join('、') || '空宫';
+        const sihua = data.birthSihua?.map(s => `${s.star}化${s.type}(${s.palace})`).join('、') || '无';
+
+        systemPrompt = `用户命盘：命宫${mingStars}，财帛宫${caiStars}，官禄宫${guanStars}，夫妻宫${fuqiStars}，本命四化：${sihua}，五行局：${data.basic.fiveElements}。
+
+你是用户的命理顾问，基于以上命盘数据回答用户的问题。回答要求：
+- 回答控制在200-500字之间
+- 用通俗易懂的语言，避免过多术语堆砌
+- 基于命盘数据给出个性化分析，而非泛泛而谈
+- 避免恐吓性表述，用建设性和积极的语言
+- 可以适当给出建议，但不要替用户做决定
+- 结尾附上："本内容由 AI 基于传统国学文化生成，仅供娱乐与自我探索参考。"`;
+
+        userMessage = message;
+      } catch (e) {
+        // 排盘失败，降级为通用模式
+        systemPrompt = `你是紫微斗数命理顾问，可以回答命理知识问题，但建议用户排盘后获得个性化解读。回答要求：
+- 回答控制在200-500字之间
+- 用通俗易懂的语言
+- 避免恐吓性表述
+- 结尾附上："本内容由 AI 基于传统国学文化生成，仅供娱乐与自我探索参考。"
+
+注意：用户提供的出生信息解析失败，请建议用户重新排盘。`;
+
+        userMessage = message;
+      }
+    } else {
+      // 无生辰信息：通用命理顾问
+      systemPrompt = `你是紫微斗数命理顾问，可以回答命理知识问题，但建议用户排盘后获得个性化解读。回答要求：
+- 回答控制在200-500字之间
+- 用通俗易懂的语言
+- 避免恐吓性表述
+- 结尾附上："本内容由 AI 基于传统国学文化生成，仅供娱乐与自我探索参考。"`;
+
+      userMessage = message;
+    }
+
+    // 构建 messages（含历史上下文）
+    const messages = [{ role: 'system', content: systemPrompt }];
+    if (Array.isArray(history)) {
+      for (const h of history.slice(-10)) {
+        if (h && h.role && h.content) {
+          messages.push({ role: h.role === 'user' ? 'user' : 'assistant', content: h.content });
+        }
+      }
+    }
+    messages.push({ role: 'user', content: userMessage });
+
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: '服务器未配置 DEEPSEEK_API_KEY' })}\n\n`);
+      return res.end();
+    }
+
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'deepseek-chat', messages, stream: true, temperature: 0.7, max_tokens: 1024 })
+    });
+
+    if (!response.ok) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: `DeepSeek API ${response.status}` })}\n\n`);
+      return res.end();
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop() || '';
+      for (const line of lines) {
+        const t = line.trim(); if (!t || !t.startsWith('data: ')) continue;
+        const d2 = t.slice(6); if (d2 === '[DONE]') { res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`); continue; }
+        try { const j = JSON.parse(d2); const c = j.choices?.[0]?.delta?.content; if (c) res.write(`data: ${JSON.stringify({ type: 'text', content: c })}\n\n`); } catch {}
+      }
+    }
+    res.end();
+  } catch (e) {
+    res.write(`data: ${JSON.stringify({ type: 'error', message: e.message })}\n\n`);
+    res.end();
+  }
+});
+
 app.post('/api/pay/order', payment.createOrder);
 app.get('/api/pay/order/:orderId', payment.queryOrder);
 app.post('/api/pay/callback', payment.paymentCallback);
@@ -1011,6 +1189,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n🪐 紫微斗数 AI 解盘 服务已启动`);
   console.log(`   前端: http://localhost:${PORT}`);
-  console.log(`   基础: /api/chart  /api/reading(SSE)  /api/quota`);
-  console.log(`   高级: /api/advanced/daxian  /liuyue  /hepan (SSE)\n`);
+  console.log(`   基础: /api/chart  /api/reading(SSE)  /api/chat(SSE)  /api/quota`);
+  console.log(`   高级: /api/advanced/daxian  /liuyue  /hepan (SSE)`);
+  console.log(`   会员: /api/membership/status  /api/pay/*  /api/products\n`);
 });

@@ -520,6 +520,93 @@ pre {
   opacity: 0.6;
 }
 
+/* ─── 会员订阅横幅 ─── */
+.member-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  min-height: 80px;
+  padding: 12px 18px;
+  margin-top: 24px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04));
+  border: 1px solid rgba(212, 168, 83, 0.22);
+  border-radius: 16px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+.member-banner::after {
+  content: '';
+  position: absolute;
+  top: -50%; right: -10%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(212,168,83,0.08), transparent 70%);
+  pointer-events: none;
+}
+.member-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+.member-title {
+  font-size: 17px;
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 600;
+  color: var(--gold-light);
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+}
+.member-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.member-prices {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.member-price-tag {
+  font-size: 20px;
+  color: #ffffff;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.member-price-year { color: var(--gold-light); }
+.member-save {
+  font-size: 11px;
+  color: var(--gold);
+  background: rgba(212, 168, 83, 0.18);
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 5px;
+  font-weight: 700;
+  vertical-align: 2px;
+}
+.member-banner .btn-primary {
+  width: auto;
+  flex-shrink: 0;
+  padding: 10px 18px;
+  font-size: 14px;
+  min-height: 42px;
+  white-space: nowrap;
+  animation: none;
+  position: relative;
+  z-index: 1;
+}
+
 /* CHANGED: 深度解读专区 — 套餐选择区样式 */
 .premium-section {
   width: 100%;
@@ -1103,6 +1190,13 @@ pre {
   .chart-center .center-lords { display: none; }
   .social-proof { font-size: 10px; }
   .urgency-bar { font-size: 11px; padding: 7px 10px; }
+  /* 会员横幅移动端适配 */
+  .member-banner { gap: 8px; padding: 10px 14px; min-height: 72px; }
+  .member-title { font-size: 15px; }
+  .member-desc { font-size: 11px; }
+  .member-price-tag { font-size: 16px; }
+  .member-save { font-size: 10px; padding: 1px 5px; }
+  .member-banner .btn-primary { padding: 8px 14px; font-size: 13px; min-height: 38px; }
   /* CHANGED: 移动端信任/流程条适配 */
   .trust-bar { gap: 4px; }
   .trust-col span { font-size: 10px; }
@@ -1121,7 +1215,668 @@ pre {
   }
   .fade-in-up { animation: none !important; opacity: 1 !important; transform: none !important; }
 }
+
+/* ═══════════════════════════════════════════════
+   NEW: 底部导航栏 + 四板块结构
+   ═══════════════════════════════════════════════ */
+
+/* 底部安全区 padding */
+body { padding-bottom: 70px !important; }
+
+/* 底部导航栏 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 50;
+  display: flex;
+  background: rgba(10, 10, 26, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 56px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b6080;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  transition: color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+}
+.nav-btn .nav-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.nav-btn .nav-label {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+.nav-btn.active {
+  color: #f0d68a;
+}
+.nav-btn:active { opacity: 0.7; }
+
+/* 板块切换动画 */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page.active {
+  animation: fadeSlideIn 0.3s ease both;
+  display: flex;
+}
+
+/* ═══════════ 命理AI 聊天界面 ═══════════ */
+#page-chat {
+  padding: 16px 14px 90px;
+}
+.chat-wrapper {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 140px);
+}
+.chat-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+.chat-header h2 {
+  font-size: 18px;
+  color: var(--gold-light);
+  font-family: 'Noto Serif SC', serif;
+  margin: 0 0 4px;
+}
+.chat-header p {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+#chat-quota-bar {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  background: rgba(212, 168, 83, 0.06);
+  border-radius: 10px;
+  border: 1px solid rgba(212, 168, 83, 0.15);
+}
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212,168,83,0.2) transparent;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(212,168,83,0.2); border-radius: 2px; }
+
+.chat-msg {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.65;
+  word-break: break-word;
+  animation: msgIn 0.3s ease both;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.chat-msg.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(124, 58, 237, 0.15));
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  color: var(--text-primary);
+  border-bottom-right-radius: 4px;
+}
+.chat-msg.ai {
+  align-self: flex-start;
+  background: rgba(212, 168, 83, 0.06);
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.ai p { margin: 8px 0; }
+.chat-msg.ai p:first-child { margin-top: 0; }
+.chat-msg.ai p:last-child { margin-bottom: 0; }
+.chat-msg.ai strong { color: var(--gold-light); }
+.chat-msg.ai ul, .chat-msg.ai ol { padding-left: 18px; margin: 6px 0; }
+.chat-msg.ai li { margin: 4px 0; }
+.chat-msg.ai code {
+  background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px;
+  font-size: 12px; color: var(--gold-light);
+}
+.chat-msg.typing::after {
+  content: '▊';
+  animation: blink 1s step-end infinite;
+  color: var(--gold);
+  margin-left: 2px;
+}
+
+.chat-input-area {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 10px 0 0;
+}
+.chat-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  max-height: 100px;
+  min-height: 46px;
+  line-height: 1.5;
+  transition: all 0.3s ease;
+  -webkit-appearance: none;
+}
+.chat-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(212, 168, 83, 0.1);
+}
+.chat-input::placeholder { color: var(--text-tertiary); }
+.chat-send-btn {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #d4a853, #f0d68a);
+  border: none;
+  border-radius: 50%;
+  color: #0B0714;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(212, 168, 83, 0.25);
+}
+.chat-send-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 168, 83, 0.35);
+}
+.chat-send-btn:active { transform: scale(0.95); }
+.chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.chat-empty-hint {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  padding: 40px 20px;
+  line-height: 1.8;
+}
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.chat-suggestion-btn {
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+.chat-suggestion-btn:hover {
+  border-color: rgba(212, 168, 83, 0.3);
+  color: var(--gold-light);
+  background: rgba(212, 168, 83, 0.06);
+}
+
+/* ═══════════ 我的会员页面 ═══════════ */
+#page-mine {
+  padding: 20px 16px 90px;
+}
+.mine-wrapper {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.mine-title {
+  text-align: center;
+  font-size: 20px;
+  color: var(--gold-light);
+  font-family: 'Noto Serif SC', serif;
+  margin: 16px 0 24px;
+  letter-spacing: 0.1em;
+}
+.mine-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.mine-card h3 {
+  font-size: 15px;
+  color: var(--gold-light);
+  margin: 0 0 16px;
+  font-family: 'Noto Serif SC', serif;
+}
+/* ─── 开发者 API 推广卡片 ─── */
+.api-card-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: -10px 0 14px;
+  line-height: 1.4;
+}
+.api-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.api-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.api-feature-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+.api-pricing {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.api-plan {
+  flex: 1;
+  text-align: center;
+  padding: 10px 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+}
+.api-plan-name { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.api-plan-price { font-size: 16px; color: var(--gold-light); font-weight: 600; font-family: 'Noto Serif SC', serif; }
+.api-plan-unit { font-size: 10px; color: var(--text-tertiary); }
+.api-doc-btn {
+  width: 100%;
+  padding: 10px;
+  min-height: 42px;
+  background: transparent;
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  border-radius: 12px;
+  color: var(--gold-light);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+.api-doc-btn:hover { background: rgba(212, 168, 83, 0.08); border-color: var(--gold); }
+.quota-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.quota-row:last-child { border-bottom: none; }
+.quota-row .quota-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.quota-row .quota-icon { font-size: 16px; }
+.quota-row .quota-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold-light);
+  font-family: 'JetBrains Mono', monospace;
+}
+.quota-row .quota-value.low { color: #e88080; }
+.mine-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #d4a853, #f0d68a);
+  border: none;
+  border-radius: 16px;
+  color: #0B0714;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  box-shadow: 0 4px 20px rgba(212, 168, 83, 0.25);
+}
+.mine-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(212, 168, 83, 0.38);
+}
+.mine-record-empty {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  padding: 24px 0;
+}
+
+/* 隐藏结果页的返回按钮（改用底部导航） */
+#page-result .back-btn-row { display: none !important; }
+
+/* 聊天页面移动端适配 */
+@media (max-width: 480px) {
+  #page-chat { padding: 12px 10px 86px; }
+  .chat-wrapper { height: calc(100dvh - 130px); }
+  .chat-msg { font-size: 13px; max-width: 90%; }
+  .chat-input { font-size: 13px; }
+}
+
+/* ─── 今日运势卡片 ─── */
+.fortune-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 420px;
+  min-height: 80px;
+  padding: 14px 18px;
+  margin: 0 0 16px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04));
+  border: 1px solid rgba(212, 168, 83, 0.22);
+  border-radius: 16px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  display: none;
+}
+.fortune-card.show { display: flex; }
+.fortune-card::after {
+  content: '';
+  position: absolute;
+  top: -40%; right: -8%;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(212,168,83,0.08), transparent 70%);
+  pointer-events: none;
+}
+.fortune-date {
+  flex-shrink: 0;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  min-width: 52px;
+}
+.fortune-date .fortune-day { font-size: 20px; font-weight: 700; color: var(--gold-light); font-family: 'Noto Serif SC', serif; line-height: 1.2; }
+.fortune-date .fortune-ganzhi { font-size: 10px; color: var(--text-tertiary); margin-top: 2px; }
+.fortune-divider { width: 1px; height: 44px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
+.fortune-body { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.fortune-text { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
+.fortune-lucky { display: flex; gap: 10px; margin-top: 6px; align-items: center; }
+.fortune-lucky-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); }
+.fortune-color-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15); }
+.fortune-lucky-num { color: var(--gold-light); font-weight: 600; }
+.fortune-empty {
+  width: 100%;
+  max-width: 420px;
+  min-height: 80px;
+  padding: 14px 18px;
+  margin: 0 0 16px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02));
+  border: 1px solid rgba(212, 168, 83, 0.12);
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.fortune-empty .fortune-empty-icon { font-size: 18px; opacity: 0.6; }
+.fortune-loading {
+  width: 100%;
+  max-width: 420px;
+  min-height: 80px;
+  padding: 14px 18px;
+  margin: 0 0 16px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02));
+  border: 1px solid rgba(212, 168, 83, 0.12);
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.fortune-loading.show { display: flex; }
+.fortune-loading .loading-spinner { width: 20px; height: 20px; border-width: 2px; }
+
+/* ─── 运势订阅卡片 ─── */
+.subscribe-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.subscribe-info { flex: 1; }
+.subscribe-title { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+.subscribe-desc { font-size: 12px; color: var(--text-secondary); margin-top: 3px; line-height: 1.4; }
+.subscribe-btn {
+  flex-shrink: 0;
+  padding: 8px 20px;
+  background: transparent;
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  border-radius: 12px;
+  color: var(--gold-light);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  min-height: 38px;
+}
+.subscribe-btn:hover { background: rgba(212, 168, 83, 0.1); border-color: var(--gold); }
+
+/* ─── 导出功能条 ─── */
+.export-bar {
+  display: flex;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 18px;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--card-bg);
+}
+.export-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  background: transparent;
+  border: none;
+}
+.export-col + .export-col::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 20%; bottom: 20%;
+  width: 1px;
+  background: var(--card-border);
+}
+.export-col:hover { background: rgba(212, 168, 83, 0.06); }
+.export-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+.export-icon svg { width: 22px; height: 22px; }
+.export-label { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+.export-tag { font-size: 10px; color: var(--gold-light); margin-top: 1px; }
+.export-tag.paid { color: var(--text-tertiary); }
+
+/* ─── Toast ─── */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(20, 16, 32, 0.95);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  z-index: 9999;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── 打印样式 ─── */
+@media print {
+  #starfield, #starfield::after { display: none !important; }
+  .bottom-nav, .back-btn-row, .tab-nav-card, #tab-nav,
+  .btn-primary, .export-bar, .disclaimer,
+  .chat-wrapper, .mine-wrapper, .member-banner,
+  .premium-section, .modal-overlay, .toast,
+  .urgency-bar, .social-proof, .brand-hero,
+  #page-home, #page-chat, #page-mine { display: none !important; }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt;
+    line-height: 1.6;
+  }
+
+  #page-result {
+    display: block !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .chart-card, #tab-content {
+    background: #ffffff !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    backdrop-filter: none !important;
+  }
+
+  #tab-content, #tab-content * {
+    color: #000000 !important;
+  }
+
+  .chart-cell { background: #f8f8f8 !important; border: 1px solid #ddd !important; color: #000 !important; }
+  .chart-cell .cell-name, .chart-cell .cell-star, .chart-cell .cell-second-star { color: #333 !important; }
+  .chart-cell.ming { border: 2px solid #999 !important; box-shadow: none !important; background: #fff !important; }
+
+  .print-header {
+    display: block !important;
+    text-align: center;
+    font-size: 16pt;
+    font-weight: 700;
+    color: #000 !important;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #333;
+  }
+
+  @page { margin: 1.5cm; }
+}
+.print-header { display: none; }
+
+/* ─── 合盘分享条 ─── */
+.share-bar {
+  margin-top: 20px;
+  padding: 18px 0;
+  border-top: 1px dashed rgba(212, 168, 83, 0.3);
+  border-bottom: 1px dashed rgba(212, 168, 83, 0.3);
+  display: none;
+}
+.share-bar.show { display: block; animation: fadeInUp 0.6s ease; }
+.share-title {
+  font-size: 14px;
+  color: var(--gold-light);
+  font-family: 'Noto Serif SC', serif;
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+}
+.share-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.share-btn {
+  flex: 1;
+  max-width: 160px;
+  padding: 10px 16px;
+  background: transparent;
+  border: 1px solid rgba(212, 168, 83, 0.4);
+  border-radius: 12px;
+  color: var(--gold-light);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  min-height: 42px;
+}
+.share-btn:hover {
+  background: rgba(212, 168, 83, 0.1);
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(212, 168, 83, 0.15);
+}
+.share-btn:active { transform: scale(0.97); }
+.share-footer {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+  margin-top: 10px;
+}
 </style>
+<!-- html2canvas for share card generation -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -1165,6 +1920,38 @@ pre {
     </h1>
     <p class="brand-subtitle"><span class="brand-ornament">✦</span>探索你的生命蓝图<span class="brand-ornament">✦</span></p>
     <div class="brand-divider"></div>
+  </div>
+
+  <!-- 今日运势卡 -->
+  <div id="fortune-empty" class="fortune-empty fade-in-up">
+    <span class="fortune-empty-icon">✦</span>
+    <span>排盘后查看你的专属今日运势</span>
+  </div>
+  <div id="fortune-loading" class="fortune-loading">
+    <div class="loading-spinner"></div>
+    <span>正在推算今日运势...</span>
+  </div>
+  <div id="fortune-card" class="fortune-card">
+    <div class="fortune-date">
+      <div class="fortune-day" id="fortune-day">—</div>
+      <div class="fortune-ganzhi" id="fortune-ganzhi">—</div>
+    </div>
+    <div class="fortune-divider"></div>
+    <div class="fortune-body">
+      <div class="fortune-text" id="fortune-text">—</div>
+      <div class="fortune-lucky">
+        <div class="fortune-lucky-item">
+          <span class="fortune-color-dot" id="fortune-color-dot" style="background:#D4AF37;"></span>
+          <span>幸运色 <span id="fortune-color-name">金色</span></span>
+        </div>
+        <div class="fortune-lucky-item">
+          <span>幸运数 <span class="fortune-lucky-num" id="fortune-lucky-num">—</span></span>
+        </div>
+        <div class="fortune-lucky-item">
+          <span>方位 <span class="fortune-lucky-num" id="fortune-direction">—</span></span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- CHANGED: 表单卡片应用新毛玻璃材质与入场动画 -->
@@ -1255,6 +2042,19 @@ pre {
     </div>
   </div>
 
+  <!-- 会员订阅横幅 -->
+  <div class="member-banner fade-in-up delay-2">
+    <div class="member-info">
+      <div class="member-title">紫微会员</div>
+      <div class="member-desc">每日无限解读 · 付费专题月月免费 · 报告导出</div>
+    </div>
+    <div class="member-prices">
+      <span class="member-price-tag">月卡 ¥29</span>
+      <span class="member-price-tag member-price-year">年卡 ¥199<span class="member-save">省 37%</span></span>
+    </div>
+    <button class="btn-primary" onclick="showPurchaseModal()">开通会员</button>
+  </div>
+
   <!-- CHANGED: 深度解读专区改造成套餐选择区 — 主推拔高 + 社会认同 + 紧迫感 -->
   <div class="premium-section fade-in-up delay-3">
     <div class="premium-header">
@@ -1303,7 +2103,7 @@ pre {
 <!-- ═══════════ 结果页 ═══════════ -->
 <div id="page-result" class="page" style="padding-top:16px;">
   <!-- CHANGED: 返回按钮增加 hover 反馈 -->
-  <div style="width:100%;max-width:420px;display:flex;align-items:center;margin-bottom:16px;" class="fade-in-up">
+  <div class="back-btn-row" style="width:100%;max-width:420px;display:flex;align-items:center;margin-bottom:16px;" class="fade-in-up">
     <button onclick="goHome()" style="background:none;border:none;color:var(--text-secondary);font-size:24px;cursor:pointer;padding:6px 10px;border-radius:10px;transition:all 0.3s ease;">←</button>
     <span style="font-size:14px;color:var(--text-secondary);">命盘解读</span>
     <span id="premium-badge" style="display:none;font-size:13px;color:var(--gold-light);margin-left:8px;padding:2px 10px;border:1px solid var(--gold);border-radius:10px;background:rgba(212,168,83,0.1);">🔮 专题</span>
@@ -1351,11 +2151,169 @@ pre {
     ⚠️ 免责声明：本内容由 AI 基于传统国学文化生成，仅供娱乐与自我探索参考，不构成任何人生决策建议。命盘如镜，映照倾向而非注定；命运如舟，舵在您自己手中。
   </p>
 
+  <!-- 导出功能条 -->
+  <div class="export-bar fade-in-up delay-3">
+    <button class="export-col" onclick="exportPDF()">
+      <div class="export-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f0d68a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <polyline points="9 15 12 18 15 15"/>
+        </svg>
+      </div>
+      <span class="export-label">PDF 导出</span>
+      <span class="export-tag">会员免费</span>
+    </button>
+    <button class="export-col" onclick="showExportToast('命盘壁纸')">
+      <div class="export-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f0d68a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </div>
+      <span class="export-label">命盘壁纸</span>
+      <span class="export-tag paid">¥9.9</span>
+    </button>
+    <button class="export-col" onclick="showExportToast('实体命书')">
+      <div class="export-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f0d68a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+      </div>
+      <span class="export-label">实体命书</span>
+      <span class="export-tag paid">¥128</span>
+    </button>
+  </div>
+
+  <!-- 打印页眉（仅打印时显示） -->
+  <div class="print-header">AI 紫微斗数 · 命理解读报告</div>
+
   <!-- CHANGED: 重新测算按钮 -->
   <button class="btn-primary fade-in-up delay-4" onclick="goHome()" style="margin-top:24px;max-width:420px;">
     🔄 重新测算
   </button>
 </div>
+
+<!-- ═══════════════════════════════════════════════
+     NEW: 板块三 — 命理AI 聊天
+     ═══════════════════════════════════════════════ -->
+<div id="page-chat" class="page">
+  <div class="chat-wrapper">
+    <div class="chat-header">
+      <h2>💬 命理 AI</h2>
+      <p>你的私人命理顾问，随时可问</p>
+    </div>
+    <div id="chat-quota-bar">🎫 今日剩余 3 / 3 次免费提问</div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-empty-hint">
+        我是你的命理助手，可以问我任何命盘相关的问题。<br>
+        例如：我的事业运怎么样？今年适合投资吗？
+        <div class="chat-suggestions">
+          <button class="chat-suggestion-btn" onclick="sendChatMessage('我的事业运怎么样？')">我的事业运怎么样？</button>
+          <button class="chat-suggestion-btn" onclick="sendChatMessage('今年适合投资吗？')">今年适合投资吗？</button>
+          <button class="chat-suggestion-btn" onclick="sendChatMessage('我的感情运势如何？')">我的感情运势如何？</button>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="chat-input" placeholder="输入你的问题..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
+      <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     NEW: 板块四 — 我的会员
+     ═══════════════════════════════════════════════ -->
+<div id="page-mine" class="page">
+  <div class="mine-wrapper">
+    <h2 class="mine-title">👤 我的</h2>
+
+    <div class="mine-card">
+      <h3>我的配额</h3>
+      <div class="quota-row">
+        <span class="quota-label"><span class="quota-icon">🎫</span> 今日免费剩余</span>
+        <span class="quota-value" id="mine-free-quota">— / 5 次</span>
+      </div>
+      <div class="quota-row">
+        <span class="quota-label"><span class="quota-icon">💎</span> 付费次数剩余</span>
+        <span class="quota-value" id="mine-paid-quota">— 次</span>
+      </div>
+      <div class="quota-row">
+        <span class="quota-label"><span class="quota-icon">💬</span> AI 聊天剩余</span>
+        <span class="quota-value" id="mine-chat-quota">— / 3 次</span>
+      </div>
+    </div>
+
+    <div class="mine-card">
+      <h3>充值中心</h3>
+      <button class="mine-btn" onclick="showPurchaseModal()">💎 购买次数包</button>
+      <div class="subscribe-card">
+        <div class="subscribe-info">
+          <div class="subscribe-title">每日运势推送</div>
+          <div class="subscribe-desc">每天早上 8 点，专属运势直达微信</div>
+        </div>
+        <button class="subscribe-btn" onclick="showExportToast('运势推送订阅')">订阅</button>
+      </div>
+    </div>
+
+    <div class="mine-card">
+      <h3>购买记录</h3>
+      <p class="mine-record-empty">暂无记录</p>
+    </div>
+
+    <!-- 开发者 API 推广 -->
+    <div class="mine-card">
+      <h3>紫微 AI API</h3>
+      <p class="api-card-subtitle">将命理能力接入你的产品</p>
+      <div class="api-features">
+        <div class="api-feature"><span class="api-feature-dot"></span>排盘引擎</div>
+        <div class="api-feature"><span class="api-feature-dot"></span>AI 解读</div>
+        <div class="api-feature"><span class="api-feature-dot"></span>合盘匹配</div>
+      </div>
+      <div class="api-pricing">
+        <div class="api-plan">
+          <div class="api-plan-name">Pro</div>
+          <div class="api-plan-price">¥299<span class="api-plan-unit">/月</span></div>
+        </div>
+        <div class="api-plan">
+          <div class="api-plan-name">企业</div>
+          <div class="api-plan-price">¥1999<span class="api-plan-unit">/月</span></div>
+        </div>
+      </div>
+      <button class="api-doc-btn" onclick="window.open('/api-docs','_blank')">查看文档</button>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-tertiary);text-align:center;margin-top:20px;line-height:1.7;">
+      数据基于本地浏览器标识<br>清除浏览器数据将重置配额
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     NEW: 底部导航栏
+     ═══════════════════════════════════════════════ -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="nav-btn active" data-page="page-home" onclick="navTo('page-home')">
+    <span class="nav-icon">🪐</span>
+    <span class="nav-label">排盘</span>
+  </button>
+  <button class="nav-btn" data-page="page-result" onclick="navTo('page-result')">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">报告</span>
+  </button>
+  <button class="nav-btn" data-page="page-chat" onclick="navTo('page-chat')">
+    <span class="nav-icon">💬</span>
+    <span class="nav-label">命理AI</span>
+  </button>
+  <button class="nav-btn" data-page="page-mine" onclick="navTo('page-mine')">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">我的</span>
+  </button>
+</nav>
 
 <!-- CHANGED: 购买弹窗基础结构保留，样式由 CSS 接管 -->
 <div class="modal-overlay" id="purchase-modal">
@@ -1627,6 +2585,9 @@ async function submitForm() {
     document.getElementById('premium-badge').style.display = 'none';
     // 提交参数存起来供 tab 使用
     submitParams = { solar_date, time, city, gender: selectedGender };
+    window.submitParams = submitParams; // 同步到 window 供其他 script 块访问
+    // 排盘成功后刷新今日运势
+    if (typeof updateFortuneDisplay === 'function') updateFortuneDisplay();
     // 默认加载概览
     switchTab('overview');
   });
@@ -2259,6 +3220,560 @@ async function doPremiumStream(readingType, extraData) {
   });
 }
 
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     NEW: 四板块导航 + 命理AI聊天 + 个人页逻辑
+     独立 script，不修改上方任何已有代码
+     ═══════════════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  // ─── 导出功能 ───
+  // Toast 元素
+  var toastEl = document.createElement('div');
+  toastEl.className = 'toast';
+  toastEl.id = 'export-toast';
+  document.body.appendChild(toastEl);
+  var toastTimer = null;
+
+  window.showExportToast = function(name) {
+    toastEl.textContent = name + ' 即将上线，敬请期待';
+    toastEl.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { toastEl.classList.remove('show'); }, 2500);
+  };
+
+  window.exportPDF = function() {
+    // 确保结果页可见
+    var resultPage = document.getElementById('page-result');
+    if (resultPage) resultPage.classList.add('active');
+    // 延迟一帧再打印，确保样式应用
+    setTimeout(function() { window.print(); }, 100);
+  };
+
+  // ─── 今日运势 ───
+  var fortuneLoaded = false;
+  window.updateFortuneDisplay = function() {
+    var emptyEl = document.getElementById('fortune-empty');
+    var loadingEl = document.getElementById('fortune-loading');
+    var cardEl = document.getElementById('fortune-card');
+    var hasChart = !!(window.submitParams);
+
+    if (!hasChart) {
+      // 未排盘：显示引导提示
+      emptyEl.style.display = 'flex';
+      loadingEl.classList.remove('show');
+      cardEl.classList.remove('show');
+      return;
+    }
+
+    // 已排盘：隐藏引导，加载运势
+    emptyEl.style.display = 'none';
+    if (!fortuneLoaded) {
+      loadDailyFortune();
+    }
+  }
+
+  function loadDailyFortune() {
+    var loadingEl = document.getElementById('fortune-loading');
+    var cardEl = document.getElementById('fortune-card');
+    loadingEl.classList.add('show');
+    cardEl.classList.remove('show');
+
+    var params = window.submitParams;
+    fetch('/api/daily-fortune', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      loadingEl.classList.remove('show');
+      if (data.error) {
+        // 接口未实现或出错：显示本地兜底运势
+        renderFortune(generateLocalFortune());
+      } else {
+        renderFortune(data);
+        fortuneLoaded = true;
+      }
+      cardEl.classList.add('show');
+    })
+    .catch(function() {
+      loadingEl.classList.remove('show');
+      renderFortune(generateLocalFortune());
+      cardEl.classList.add('show');
+      fortuneLoaded = true;
+    });
+  }
+
+  function renderFortune(data) {
+    var now = new Date();
+    document.getElementById('fortune-day').textContent = (now.getMonth() + 1) + '/' + now.getDate();
+    document.getElementById('fortune-ganzhi').textContent = data.ganzhi || '';
+    document.getElementById('fortune-text').textContent = data.fortune || data.text || '今日宜静心思考，把握机遇。';
+    document.getElementById('fortune-color-name').textContent = data.luckyColor || '金色';
+    document.getElementById('fortune-color-dot').style.background = data.luckyColorHex || '#D4AF37';
+    document.getElementById('fortune-lucky-num').textContent = data.luckyNumber || '—';
+    document.getElementById('fortune-direction').textContent = data.luckyDirection || '—';
+  }
+
+  // 本地兜底运势（当 /api/daily-fortune 不存在时）
+  function generateLocalFortune() {
+    var colors = [
+      { name: '金色', hex: '#D4AF37' }, { name: '红色', hex: '#E84A4A' },
+      { name: '青色', hex: '#4ECDC4' }, { name: '紫色', hex: '#9B59B6' },
+      { name: '橙色', hex: '#E67E22' }, { name: '蓝色', hex: '#3498DB' }
+    ];
+    var directions = ['东方', '南方', '西方', '北方', '东南', '西北'];
+    var fortunes = [
+      '今日思维敏捷，适合处理复杂事务，贵人运佳。',
+      '宜低调行事，把握细节，避免冲动决策。',
+      '人气旺盛，适合社交合作，把握人际机遇。',
+      '沉稳踏实的一天，积累能量为明天做准备。',
+      '灵感涌现，适合创意工作，注意健康休息。',
+      '财运平稳，宜理财规划，避免大额支出。'
+    ];
+    var seed = new Date().getDate() + (window.submitParams ? window.submitParams.solar_date.length : 0);
+    return {
+      ganzhi: '',
+      fortune: fortunes[seed % fortunes.length],
+      luckyColor: colors[seed % colors.length].name,
+      luckyColorHex: colors[seed % colors.length].hex,
+      luckyNumber: String((seed * 7) % 9 + 1),
+      luckyDirection: directions[seed % directions.length]
+    };
+  }
+
+  // ─── 1. 导航栏同步：劫持 showPage ───
+  var _origShowPage = window.showPage;
+  window.showPage = function(pageId) {
+    if (_origShowPage) _origShowPage(pageId);
+    syncNavActive(pageId);
+    // 切换到个人页时刷新配额
+    if (pageId === 'page-mine') refreshMineQuota();
+    // 切换到聊天页时刷新聊天配额
+    if (pageId === 'page-chat') refreshChatQuota();
+    // 切换到首页时刷新今日运势
+    if (pageId === 'page-home') updateFortuneDisplay();
+  };
+
+  // 导航按钮点击
+  window.navTo = function(pageId) {
+    // 报告页：如果还没有排过盘，跳到排盘页
+    if (pageId === 'page-result' && (!window.submitParams || !window.chartInfo)) {
+      showPage('page-home');
+      return;
+    }
+    showPage(pageId);
+  };
+
+  function syncNavActive(pageId) {
+    document.querySelectorAll('.nav-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.page === pageId);
+    });
+  }
+
+  // ─── 2. 命理AI 聊天 ───
+  var chatMessages = document.getElementById('chat-messages');
+  var chatInput = document.getElementById('chat-input');
+  var chatSendBtn = document.getElementById('chat-send-btn');
+  var chatQuotaBar = document.getElementById('chat-quota-bar');
+  var chatHistory = [];
+  var chatQuota = 3;
+  var chatInFlight = false;
+
+  // 自动撑高输入框
+  if (chatInput) {
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+  }
+
+  window.sendChatMessage = function(presetText) {
+    if (chatInFlight) return;
+    var text = (presetText || '').trim();
+    if (!text) {
+      text = (chatInput.value || '').trim();
+      if (!text) return;
+    }
+
+    // 检查额度
+    if (chatQuota <= 0) {
+      showChatPurchaseHint();
+      return;
+    }
+
+    // 清空首次提示
+    var emptyHint = chatMessages.querySelector('.chat-empty-hint');
+    if (emptyHint) emptyHint.remove();
+
+    // 添加用户消息
+    appendChatMsg('user', text);
+    chatHistory.push({ role: 'user', content: text });
+    if (chatInput) chatInput.value = '';
+    if (chatInput) chatInput.style.height = 'auto';
+    chatInFlight = true;
+    chatSendBtn.disabled = true;
+
+    // 创建 AI 消息占位
+    var aiEl = appendChatMsg('ai', '');
+    aiEl.classList.add('typing');
+    var aiText = '';
+
+    // 调用 /api/chat SSE
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history: chatHistory.slice(-10),
+        birthInfo: window.submitParams || null
+      })
+    }).then(function(response) {
+      if (!response.ok) {
+        return response.text().then(function(t) {
+          throw new Error(t || '请求失败');
+        });
+      }
+      var reader = response.body.getReader();
+      var decoder = new TextDecoder();
+      var buffer = '';
+
+      function readChunk() {
+        reader.read().then(function(_ref) {
+          var done = _ref.done;
+          var value = _ref.value;
+          if (done) {
+            finishAiMsg(aiEl, aiText);
+            return;
+          }
+          buffer += decoder.decode(value, { stream: true });
+          var lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (!line || line.indexOf('data: ') !== 0) continue;
+            try {
+              var msg = JSON.parse(line.slice(6));
+              if (msg.type === 'text') {
+                aiText += msg.content;
+                aiEl.innerHTML = renderMarkdown(aiText);
+                aiEl.classList.add('typing');
+                scrollChatToBottom();
+              } else if (msg.type === 'done') {
+                finishAiMsg(aiEl, aiText);
+              } else if (msg.type === 'error') {
+                aiEl.classList.remove('typing');
+                aiEl.innerHTML = '<span style="color:#e88080;">' + (msg.message || '出错了') + '</span>';
+                finishAiMsgError();
+              } else if (msg.type === 'quota') {
+                if (typeof msg.remaining === 'number') {
+                  chatQuota = msg.remaining;
+                  updateChatQuotaBar();
+                }
+              }
+            } catch (e) {}
+          }
+          readChunk();
+        }).catch(function(err) {
+          aiEl.classList.remove('typing');
+          aiEl.innerHTML = '<span style="color:#e88080;">网络错误</span>';
+          finishAiMsgError();
+        });
+      }
+      readChunk();
+    }).catch(function(err) {
+      // 降级：如果 /api/chat 不存在，返回提示
+      aiEl.classList.remove('typing');
+      aiEl.innerHTML = '<span style="color:var(--text-secondary);">该功能正在上线中，敬请期待。你可以在「报告」板块查看 AI 命盘解读。</span>';
+      finishAiMsgError();
+    });
+
+    function finishAiMsg(el, text) {
+      el.classList.remove('typing');
+      chatHistory.push({ role: 'assistant', content: text });
+      chatInFlight = false;
+      chatSendBtn.disabled = false;
+      // 如果服务端没有推送 quota，本地扣减
+      // chatQuota 会被服务端 quota 消息更新
+      scrollChatToBottom();
+    }
+    function finishAiMsgError() {
+      chatInFlight = false;
+      chatSendBtn.disabled = false;
+      scrollChatToBottom();
+    }
+  };
+
+  function appendChatMsg(role, text) {
+    var el = document.createElement('div');
+    el.className = 'chat-msg ' + role;
+    if (text) el.innerHTML = renderMarkdown(text);
+    chatMessages.appendChild(el);
+    scrollChatToBottom();
+    return el;
+  }
+
+  function renderMarkdown(text) {
+    if (window.marked) {
+      try { return window.marked.parse(text); } catch (e) {}
+    }
+    return text.replace(/</g, '&lt;').replace(/\n/g, '<br>');
+  }
+
+  function scrollChatToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function updateChatQuotaBar() {
+    if (chatQuota <= 0) {
+      chatQuotaBar.innerHTML = '🚫 免费次数已用完 <span style="color:var(--gold-light);cursor:pointer;text-decoration:underline;" onclick="showPurchaseModal()">💎 购买付费次数</span>';
+      chatQuotaBar.style.color = '#e88080';
+    } else {
+      chatQuotaBar.textContent = '🎫 今日剩余 ' + chatQuota + ' / 3 次免费提问';
+      chatQuotaBar.style.color = '';
+    }
+  }
+
+  function showChatPurchaseHint() {
+    var el = appendChatMsg('ai', '');
+    el.innerHTML = '<span style="color:var(--gold-light);">免费次数已用完，</span><span style="color:var(--gold-light);cursor:pointer;text-decoration:underline;" onclick="showPurchaseModal()">购买付费次数继续提问</span>';
+  }
+
+  function refreshChatQuota() {
+    // 尝试从 /api/quota 获取
+    fetch('/api/quota').then(function(r) { return r.json(); }).then(function(q) {
+      // 如果后端有 chatQuota 字段就用，否则默认 3
+      chatQuota = (typeof q.chatRemaining === 'number') ? q.chatRemaining : 3;
+      updateChatQuotaBar();
+    }).catch(function() {
+      updateChatQuotaBar();
+    });
+  }
+
+  // ─── 3. 个人页配额刷新 ───
+  function refreshMineQuota() {
+    fetch('/api/quota').then(function(r) { return r.json(); }).then(function(q) {
+      var total = q.totalRemaining !== undefined ? q.totalRemaining : (q.remaining !== undefined ? q.remaining : 5);
+      var paid = q.paidRemaining || 0;
+      var free = q.freeRemaining !== undefined ? q.freeRemaining : (total - paid);
+      var limit = q.limit || 5;
+
+      var freeEl = document.getElementById('mine-free-quota');
+      var paidEl = document.getElementById('mine-paid-quota');
+      var chatEl = document.getElementById('mine-chat-quota');
+
+      if (freeEl) {
+        freeEl.textContent = free + ' / ' + limit + ' 次';
+        freeEl.classList.toggle('low', free <= 1);
+      }
+      if (paidEl) {
+        paidEl.textContent = paid + ' 次';
+      }
+      if (chatEl) {
+        var chatRem = (typeof q.chatRemaining === 'number') ? q.chatRemaining : 3;
+        chatEl.textContent = chatRem + ' / 3 次';
+        chatEl.classList.toggle('low', chatRem <= 0);
+      }
+    }).catch(function() {});
+  }
+
+  window.refreshMineQuota = refreshMineQuota;
+
+  // ─── 4. 初始化 ───
+  // 页面加载后同步导航栏
+  syncNavActive('page-home');
+  // 初始化今日运势显示
+  updateFortuneDisplay();
+  // 初始化聊天配额显示
+  updateChatQuotaBar();
+  // 刷新首页配额时也尝试刷新个人页（原 refreshQuota 可能在购买后调用）
+  var _origRefreshQuota = window.refreshQuota;
+  if (_origRefreshQuota) {
+    window.refreshQuota = function() {
+      _origRefreshQuota();
+      refreshMineQuota();
+    };
+  }
+
+  // ─── 合盘分享功能 ───
+  var shareBarInjected = false;
+
+  function injectShareBar() {
+    if (shareBarInjected) return;
+    var tabContent = document.getElementById('tab-content');
+    if (!tabContent) return;
+
+    // 检查当前是否为合盘解读（通过 URL hash 或页面状态判断）
+    // 合盘完成后 reading-disclaimer 会显示，且 tab-content 有内容
+    var disclaimer = document.getElementById('reading-disclaimer');
+    if (!disclaimer || disclaimer.style.display === 'none') return;
+
+    // 仅在合盘模式下注入（检查是否有合盘相关标记）
+    var isHepanContent = tabContent.innerHTML.indexOf('合盘') !== -1 ||
+                         tabContent.innerHTML.indexOf('双人') !== -1 ||
+                         tabContent.innerHTML.indexOf(' compatibility') !== -1 ||
+                         tabContent.innerHTML.indexOf('缘分') !== -1;
+    if (!isHepanContent) return;
+
+    var shareBar = document.createElement('div');
+    shareBar.className = 'share-bar';
+    shareBar.id = 'hepan-share-bar';
+    shareBar.innerHTML =
+      '<div class="share-title">分享给 TA 一起看</div>' +
+      '<div class="share-actions">' +
+        '<button class="share-btn" id="share-card-btn">生成分享卡</button>' +
+        '<button class="share-btn" id="share-link-btn">复制邀请链接</button>' +
+      '</div>' +
+      '<div class="share-footer">双方各得 1 次免费合盘额度</div>';
+    tabContent.appendChild(shareBar);
+    // 触发动画
+    setTimeout(function() { shareBar.classList.add('show'); }, 50);
+    shareBarInjected = true;
+
+    // 绑定事件
+    document.getElementById('share-card-btn').addEventListener('click', generateShareCard);
+    document.getElementById('share-link-btn').addEventListener('click', copyShareLink);
+  }
+
+  function generateShareCard() {
+    var tabContent = document.getElementById('tab-content');
+    var shareBar = document.getElementById('hepan-share-bar');
+    var btn = document.getElementById('share-card-btn');
+
+    if (typeof html2canvas === 'undefined') {
+      showExportToast('分享卡组件加载失败');
+      return;
+    }
+
+    // 临时隐藏分享条本身
+    if (shareBar) shareBar.style.display = 'none';
+    btn.textContent = '生成中...';
+    btn.disabled = true;
+
+    // 创建临时容器用于截图（添加水印）
+    var clone = tabContent.cloneNode(true);
+    // 移除克隆中的分享条
+    var cloneShareBar = clone.querySelector('#hepan-share-bar');
+    if (cloneShareBar) cloneShareBar.remove();
+
+    // 添加水印
+    var watermark = document.createElement('div');
+    watermark.style.cssText = 'padding:12px 20px;background:linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05));text-align:center;font-size:13px;color:#f0d68a;font-family:Noto Serif SC, serif;letter-spacing:0.05em;border-top:1px solid rgba(212,168,83,0.2);';
+    watermark.textContent = 'AI 紫微斗数 · ziwei-ai-vlqb.onrender.com';
+    clone.appendChild(watermark);
+
+    // 临时挂载到 DOM
+    clone.style.cssText = 'position:absolute;left:-9999px;top:0;width:' + tabContent.offsetWidth + 'px;background:#0B0714;border-radius:20px;padding:20px 18px;';
+    document.body.appendChild(clone);
+
+    html2canvas(clone, {
+      backgroundColor: '#0B0714',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    }).then(function(canvas) {
+      document.body.removeChild(clone);
+      // 恢复分享条
+      if (shareBar) shareBar.style.display = '';
+      btn.textContent = '生成分享卡';
+      btn.disabled = false;
+
+      // 下载
+      var link = document.createElement('a');
+      link.download = 'ziwei-hepan-' + Date.now() + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+
+      // toast 提示
+      toastEl.textContent = '分享卡已保存到本地';
+      toastEl.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function() { toastEl.classList.remove('show'); }, 2500);
+    }).catch(function(e) {
+      document.body.removeChild(clone);
+      if (shareBar) shareBar.style.display = '';
+      btn.textContent = '生成分享卡';
+      btn.disabled = false;
+      toastEl.textContent = '生成失败，请重试';
+      toastEl.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function() { toastEl.classList.remove('show'); }, 2500);
+    });
+  }
+
+  function copyShareLink() {
+    var url = window.location.origin + window.location.pathname + '?ref=share';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function() {
+        toastEl.textContent = '邀请链接已复制';
+        toastEl.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function() { toastEl.classList.remove('show'); }, 2500);
+      }).catch(function() {
+        fallbackCopy(url);
+      });
+    } else {
+      fallbackCopy(url);
+    }
+  }
+
+  function fallbackCopy(text) {
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      toastEl.textContent = '邀请链接已复制';
+    } catch (e) {
+      toastEl.textContent = '复制失败，请手动复制';
+    }
+    document.body.removeChild(textarea);
+    toastEl.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { toastEl.classList.remove('show'); }, 2500);
+  }
+
+  // 监听 tab-content 变化，在合盘完成后注入分享条
+  var tabContentEl = document.getElementById('tab-content');
+  if (tabContentEl) {
+    var observer = new MutationObserver(function(mutations) {
+      // 检查 reading-disclaimer 是否显示
+      var disclaimer = document.getElementById('reading-disclaimer');
+      if (disclaimer && disclaimer.style.display !== 'none') {
+        // 延迟一帧确保 DOM 更新完成
+        setTimeout(injectShareBar, 200);
+      }
+    });
+    observer.observe(tabContentEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+
+    // 也监听 reading-disclaimer 的样式变化
+    var disclaimerEl = document.getElementById('reading-disclaimer');
+    if (disclaimerEl) {
+      var disclaimerObserver = new MutationObserver(function() {
+        setTimeout(injectShareBar, 200);
+      });
+      disclaimerObserver.observe(disclaimerEl, { attributes: true, attributeFilter: ['style'] });
+    }
+  }
+
+  // 切换 tab 或页面时重置分享条状态
+  var _origSwitchTab = window.switchTab;
+  if (_origSwitchTab) {
+    window.switchTab = function(tab) {
+      shareBarInjected = false;
+      var existing = document.getElementById('hepan-share-bar');
+      if (existing) existing.remove();
+      return _origSwitchTab.apply(this, arguments);
+    };
+  }
+})();
 </script>
 </body>
 </html>
